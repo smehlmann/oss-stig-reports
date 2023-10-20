@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from 'oidc-react';
 import './App.css';
-//import { CSVLink } from 'react-csv';
-//import { usePapaParse } from 'react-papaparse';
-//import Papa from 'papaparse';
+import { CSVLink } from 'react-csv';
+import Papa from 'papaparse';
 import * as GenerateReport from './reports/GenerateReport.js';
 
 
@@ -14,7 +13,7 @@ function OssStigReports() {
   const idToken = auth.userData?.id_token;
   console.log(idToken);
 
-  const [apiResponse, setApiResponse] = useState('');
+  const [apiResponse, setApiResponse] = useState([]);
   const [fileData, setFileData] = useState('');
   const [report, setReport] = useState('');
   const [disabled, setDisabled] = useState(true);
@@ -45,20 +44,56 @@ function OssStigReports() {
     window.location.reload();
   }
 
-  const handleSubmit = (e) => {
-    
+  const enableShowData = () => {
+    setShowData(true);
+  }
+
+  const handleSubmit = async (e) => {
+
     e.preventDefault();
 
-    if (report.length === 0) {
+    if (report === '') {
       alert('Please select a report to generate.');
       return;
     }
 
-    if (report.length > 0) {
+    await callAPI(auth, report, emassNums).then((data) => {
+      setApiResponse(data);
+      setFileData(data);
+      setShowData(true);
+    })
+    // alert('Number of rows returned' + rows.length);
 
-      callAPI(auth, report, emassNums);
+    // if (rows.length > 0) {
+    //   alert('Report is ready to save. Use the "Download report" link below to save the report.');
+    // }
 
-    }
+  }
+
+  const getKeys = () => {
+
+    jsonData = Papa.parse(apiResponse, { header: true });
+    console.log('jsonData: ' + jsonData.data);
+
+    var keys = jsonData.data[0];
+    return Object.keys(keys);
+  }
+
+
+  const getHeader = () => {
+    var keys = getKeys();
+    return keys.map((key, index) => {
+      return <th key={key}>{key.toUpperCase()}</th>
+    })
+  }
+
+  const getRowsData = () => {
+    //var items = this.state.apiResponse;
+    var items = jsonData.data;
+    var keys = getKeys();
+    return items.map((row, index) => {
+      return <tr key={index}><RenderRow key={index} data={row} keys={keys} /></tr>
+    })
   }
 
   return (
@@ -167,6 +202,45 @@ function OssStigReports() {
           <br />
           <button className="submit-btn" type="submit">Run Report</button>
           <button className="new-report-btn" type='reset' onClick={newReport}>New Report</button>
+          <br /><br />
+          {showData && (
+            <div id='tableDiv'>
+              <div id="csv-ink-div">
+                <CSVLink
+                  data={fileData}
+                  onClick={() => {
+                    //window.location.reload();
+                  }}
+                >Export report to CSV file.</CSVLink>
+              </div>
+              <br /><br />
+              <div>
+                <table>
+                  <tbody>
+                    {apiResponse.map((item, index) => (
+                      <tr key={index}>
+                        <td>
+                          {item.emass}
+                        </td>
+                        <td>
+                          {item.collection}
+                        </td>
+                        <td>
+                          {item.benchmark}
+                        </td>
+                        <td>
+                          {item.stigVersion}
+                        </td>
+                        <td>
+                          {item.assetNames}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </div >
@@ -178,9 +252,16 @@ async function callAPI(auth, report, emassNums) {
   //alert('callAPI report: ' + report);
 
   var rows = await GenerateReport.GenerateReport(auth, report, emassNums);
+  alert('calApi number of rows retruned: ' + rows.length);
 
   return rows;
-
 }
+
+const RenderRow = (props) => {
+  return props.keys.map((key, index) => {
+    return <td key={props.data[key]}>{props.data[key]}</td>
+  })
+}
+
 
 export default OssStigReports;

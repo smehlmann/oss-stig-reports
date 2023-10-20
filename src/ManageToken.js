@@ -16,6 +16,7 @@ function ManageToken() {
     ? new Date(auth.userData.expires_at * 1000)
     : null
 
+    /*
   //const [accessTokenId, setAccessTokenId] = useState(accessToken);
 
   // setting remaining time
@@ -64,7 +65,7 @@ function ManageToken() {
     const end = token.substring(token.length - 8)
     return `${start}...${end}`
   }
-
+*/
   // error handling for if auth is null/undefined or userData doesn't exist
   if (!auth || !auth.userData) {
     // Handle the situation where auth is null/undefined or userData doesn't exist
