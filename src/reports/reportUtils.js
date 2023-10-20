@@ -27,19 +27,31 @@ function getCollectionsByEmassNumber(collections) {
     let emassMap = new Map();
 
     try {
-        for (var x = 0; x < collections.length; x++) {
+        for (var x = 0; x < collections.data.length; x++) {
 
-            var emassNum = collections[x].metadata.eMASS;
+            console.log('collectionName: ' + collections.data[x].name);
+
+            if(!collections.data[x].name.startsWith('NP_C')) {
+                continue;
+            }
+
+            if(!collections.data[x].metadata){
+                continue;
+            }
+
+            var emassNum = collections.data[x].metadata.eMASS;
             if (emassNum) {
 
                 var myVal = emassMap.get(emassNum);
                 if (myVal) {
-                    myVal.push(collections[x]);
+                    myVal.push(collections.data[x]);
                     emassMap.set(emassNum, myVal);
                 }
                 else {
-                    myVal = [collections[x]];
-                    emassMap.set(emassNum, myVal);
+                    myVal = collections.data[x];
+                    var collVal = [];
+                    collVal.push(myVal);
+                    emassMap.set(emassNum, collVal);
                 }
             }
         }

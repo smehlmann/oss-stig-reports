@@ -20,7 +20,7 @@ async function runAssetByCollectionReport(auth, emassNums) {
                 assetNames: 'Assets'
             }
         ]
-            
+
         var collections = [];
         var tempCollections = [];
 
@@ -43,42 +43,39 @@ async function runAssetByCollectionReport(auth, emassNums) {
                 }
             }
         }
-
-        var emassMap = reportUtils.getCollectionsByEmassNumber(collections);
+        emassMap = reportUtils.getCollectionsByEmassNumber(collections);
         var iKey = 0;
         var iKeyend = emassMap.size;
         var myKeys = emassMap.keys();
 
-         //collectionName = '';
-         while (iKey < iKeyend) {
-            /*for (var i = 0; i < collections.length; i++) {*/
-            //var collectionName = collections[i].name;
+        while (iKey < iKeyend) {
             var emassNum = myKeys.next().value;
             var myCollections = emassMap.get(emassNum);
 
             for (var i = 0; i < myCollections.length; i++) {
                 //console.log("Requesting STIGS");
+                console.log('myCollections: ' + myCollections[i]);
+
                 var collectionName = myCollections[i].name;
                 var strToRemove = '_' + emassNum + '_';
                 collectionName = collectionName.replace(strToRemove, '');
                 stigs = await reportGetters.getStigs(auth, myCollections[i].collectionId);
                 //console.log(stigs)
 
-                /*
                 //console.log("Requesting assets")
-                for (var k = 0; k < stigs.length; k++) {
+                for (var k = 0; k < stigs.data.length; k++) {
                     assets.length = 0;
-                    assets = await reportGetters.getAssets(auth, myCollections[i].collectionId, stigs[k].benchmarkId)
+                    assets = await reportGetters.getAssets(auth, myCollections[i].collectionId, stigs.data[k].benchmarkId)
                     //console.log(assets)
 
-                    var myData = getRow(emassNum, collectionName, stigs[k], assets)
+                    var myData = getRow(emassNum, collectionName, stigs.data[k], assets)
                     rows.push(myData);
-                }*/
+                }
             }
             iKey++;
         }
 
-
+        alert('returning report data');
         return rows;
     }
     catch (e) {
@@ -93,12 +90,12 @@ function getRow(emassNum, collectionName, stigs, assets) {
     var benchmarkId = stigs.benchmarkId
     var stigVersion = stigs.revisionStr
 
-    for (var i = 0; i < assets.length; i++) {
-        if (i < assets.length - 1) {
-            assetNames += assets[i].name + ';'
+    for (var i = 0; i < assets.data.length; i++) {
+        if (i < assets.data.length - 1) {
+            assetNames += assets.data[i].name + ';'
         }
         else {
-            assetNames += assets[i].name
+            assetNames += assets.data[i].name
         }
     }
 

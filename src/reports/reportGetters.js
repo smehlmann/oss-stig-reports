@@ -35,16 +35,16 @@ async function getMetricsData(auth, myUrl) {
   catch (e) {
     //console.log('Error in getMetricsData url: ' + myUrl);
     console.log(e.message);
-   /* var msg = e.message.toLowerCase();
+   var msg = e.message.toLowerCase();
     var errMsg = 'response code 401';
     if (!msg.includes(errMsg)) {
       return null;
-    }*/
+    }
     console.log('Get new token');
-    /*var refreshToken = auth.userData?.refresh_token;
-    var newToken = await tokenUtils.refreshTokens();
+    var refreshToken = auth.userData?.refresh_token;
+    //var newToken = await tokenUtils.refreshTokens();
     //var newToken = await tokenUtils.getTokens(oidcBase, client_id, scope);
-    return await got.get(myUrl, {
+    /*return await got.get(myUrl, {
       headers: {
         Authorization: `Bearer ${newToken.access_token}`
       }
@@ -819,8 +819,6 @@ export {
   getLabelsByCollection,
   getBenchmarkRevisions,
   createLabel,
-  //deleteLabel,
-  //saveLabelAssetMapping,
   getChecklists,
   getCollectionBenchmarkChecklist,
   getAssetChecklists,
@@ -832,6 +830,5 @@ export {
   getReviewByCollectionAndAsset,
   getAllReviewsByCollectionAndAsset,
   getReviewByGroupId,
-  getSubmittedReviewsByCollectionAndAsset,
-  //setDeviceCode
+  getSubmittedReviewsByCollectionAndAsset
 };
