@@ -1,5 +1,8 @@
 //import got from 'got';
 import axios from 'axios'
+import { useAuth } from 'oidc-react';
+import { AuthContext } from 'oidc-react';
+import * as UseNewAuth from './UseNewAuth.js';
 //import open from 'open'
 //import { stringify } from 'csv-stringify/sync'
 //import { setTimeout } from 'timers/promises'
@@ -15,12 +18,71 @@ const scope =
   'openid stig-manager:collection stig-manager:user stig-manager:stig stig-manager:op stig-manager:stig:read stig-manager:stig:write'
 var deviceCodeResponse;
 
+
+async function useNewAuth(myUrl) {
+
+  const myAuth = useAuth();
+
+  var accessToken = myAuth.userData?.access_token;
+
+  try {
+    var resp = await axios.get(myUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    //alert('returning resp')
+    return resp;
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+
+}
+
+
+async function getNewToken(refreshToken) {
+  try {
+    console.log('Requesting token');
+    alert('Requesting token');
+    const response = await axios.post('https://stigman.nren.navy.mil/auth/realms/np-stigman/protocol/openid-connect/token', {
+      form: {
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: 'np-stig-manager'
+      }
+    }).json();
+
+    //setMyTokens(response);
+    return response
+  }
+  catch (e) {
+    console.log(e.message)
+    return {}
+  }
+}
+
+function getAuth() {
+
+  console.log('Requesting new auth');
+  var react_1 = require("react");
+
+  var useMyAuth = function () {
+    var context = (0, react_1.useContext)(AuthContext.AuthContext);
+    if (!context) {
+      throw new Error('AuthProvider context is undefined, please verify you are calling useAuth() as child of a <AuthProvider> component.');
+    }
+    return useMyAuth;
+  };
+}
+
+
 async function getMetricsData(auth, myUrl) {
 
-  
-  //console.log(myUrl);
 
-  const accessToken = auth.userData?.access_token;
+  //console.log(myUrl);
+  var accessToken = auth.userData?.access_token;
 
   try {
     var resp = await axios.get(myUrl, {
@@ -35,13 +97,50 @@ async function getMetricsData(auth, myUrl) {
   catch (e) {
     //console.log('Error in getMetricsData url: ' + myUrl);
     console.log(e.message);
-   var msg = e.message.toLowerCase();
-    var errMsg = 'response code 401';
+    var msg = e.message.toLowerCase();
+    var errMsg = '401';
     if (!msg.includes(errMsg)) {
       return null;
     }
+
     console.log('Get new token');
-    var refreshToken = auth.userData?.refresh_token;
+    alert('Need token refresh');
+    //resp = useNewAuth(myUrl);
+    //var refreshToken = auth.userData?.refresh_token;
+    //var useMyAuth = getAuth();
+    //var react_1 = require("react");
+    //var myAuth = (0, react_1.useContext)(AuthContext.AuthContext);
+
+    /*var myAuth = UseNewAuth.UseMyAuth();
+
+    accessToken = myAuth.userData?.access_token;
+    //accessToken = myAuth.userData?.access_token;
+    //var refreshToken = myAuth.userData?.refresh_token
+
+    resp = await axios.get(myUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });*/
+
+    return resp;
+
+    /*const response = await axios.post('https://stigman.nren.navy.mil/auth/realms/np-stigman/protocol/openid-connect/token', {
+            form: {
+                grant_type: 'refresh_token',
+                refresh_token: accessToken,
+                client_id: 'np-stig-manager'
+            }
+        }).json();*/
+
+    /*var resp = await axios.get(myUrl, {
+      headers: {
+        Authorization: `Bearer ${refreshToken}`
+      }
+    });
+
+    return resp;*/
+
     //var newToken = await tokenUtils.refreshTokens();
     //var newToken = await tokenUtils.getTokens(oidcBase, client_id, scope);
     /*return await got.get(myUrl, {
@@ -52,45 +151,51 @@ async function getMetricsData(auth, myUrl) {
   }
 }
 
-async function getXMLMetricsData(accessToken, myUrl) {
+async function getXMLMetricsData(auth, myUrl) {
 
-/*
   //console.log(myUrl);
 
-  const parser = new xml2js.Parser;
+  //const parser = new xml2js.Parser;
 
   try {
 
-    const response = await got.get(myUrl, {
+    const response = await axios.get(myUrl, {
       headers: {
-        Authorization: `Bearer ${accessToken}`
+        Authorization: `Bearer ${auth}`
       }
     });
 
     var jsonResp;
     var xmlResp = response.body;
     //console.log(xmlResp);
-    parser.parseString(xmlResp, function (err, result) {
-      //console.log(result);
-      //console.log('Done');
-      jsonResp = result;
-    });
-    return jsonResp;
+    //parser.parseString(xmlResp, function (err, result) {
+    //console.log(result);
+    //console.log('Done');
+    //jsonResp = result;
+    //});
+    //return jsonResp;
+    return null;
   }
   catch (e) {
     console.log('Error in geXMLtMetricsData url: ' + myUrl);
     console.log(e.message);
+    console.log(e.message);
+    var msg = e.message.toLowerCase();
+    var errMsg = 'response code 401';
+    if (!msg.includes(errMsg)) {
+      return null;
+    }
     console.log('Get new token');
-    var newToken = await tokenUtils.refreshTokens();
-    //var newToken = await tokenUtils.getTokens(oidcBase, client_id, scope);
-    const response = await got.get(myUrl, {
-      headers: {
-        Authorization: `Bearer ${newToken.access_token}`
-      }
-    });
-    var myResponse = parser.toJson(response.bodys);
-    return myResponse;
-  }*/
+    //auth = getAuth();
+    //var newToken = await tokenUtils.refreshTokens();
+    //const response = await got.get(myUrl, {
+    // headers: {
+    // Authorization: `Bearer ${newToken.access_token}`
+  }
+  //});
+  //var myResponse = parser.toJson(response.bodys);
+  //return myResponse;
+  return null;
 }
 
 async function getCollections(auth) {
@@ -106,14 +211,14 @@ async function getCollections(auth) {
   }
 }
 
-async function getCollectionByName(accessToken, collectionName) {
+async function getCollectionByName(auth, collectionName) {
 
   // add escape characters to slashes in the collection name
   var tempName = collectionName.replaceAll("/", "%2F");
   tempName = tempName.replaceAll("&", "%26");
   var myUrl = apiBase + '/collections?name=' + tempName + '&name-match=exact';
   //console.log('url: ' + myUrl);
-  var collections = getMetricsData(accessToken, myUrl);
+  var collections = getMetricsData(auth, myUrl);
   return collections;
 }
 
@@ -124,20 +229,20 @@ async function getStigs(auth, collectionId) {
   return stigs
 }
 
-async function getStigById(accessToken, benchmarkId) {
+async function getStigById(auth, benchmarkId) {
   //console.log('inGetStigs')
   var myUrl = apiBase + '/stigs/' + benchmarkId;
-  var stig = getMetricsData(accessToken, myUrl)
+  var stig = getMetricsData(auth, myUrl)
   return stig
 }
 
-async function getStigsByAsset(accessToken, assetId) {
+async function getStigsByAsset(auth, assetId) {
 
   try {
     //console.log('inGetStigsByAssets')
     var myUrl = apiBase + '/assets/' + assetId + '/stigs';
     //console.log('myUrl: ' + myUrl);
-    var stigs = await getMetricsData(accessToken, myUrl)
+    var stigs = await getMetricsData(auth, myUrl)
     return stigs
   }
   catch (e) {
@@ -146,19 +251,19 @@ async function getStigsByAsset(accessToken, assetId) {
   }
 }
 
-async function getAssets(accessToken, collectionId, benchmarkId) {
+async function getAssets(auth, collectionId, benchmarkId) {
   //console.log('inGetStigs')
   var myUrl = apiBase + '/collections/' + collectionId + '/stigs/' + benchmarkId + '/assets'
-  var assets = getMetricsData(accessToken, myUrl)
+  var assets = getMetricsData(auth, myUrl)
   return assets
 }
 
-async function getAssetsByCollection(accessToken, collectionId) {
+async function getAssetsByCollection(auth, collectionId) {
 
   try {
     //console.log('getAssetsByCollection');
     var myUrl = apiBase + '/assets?collectionId=' + collectionId + '&name-match=exact';
-    var assets = getMetricsData(accessToken, myUrl)
+    var assets = getMetricsData(auth, myUrl)
     return assets;
   }
   catch (e) {
@@ -167,64 +272,64 @@ async function getAssetsByCollection(accessToken, collectionId) {
   }
 }
 
-async function getAssetsByLabel(accessToken, collectionId, labelId) {
+async function getAssetsByLabel(auth, collectionId, labelId) {
 
   //console.log('getAssetsByLabel');
   var myUrl = apiBase + '/collections/' + collectionId + '/labels/' + labelId + '/assets';
-  var assets = getMetricsData(accessToken, myUrl)
+  var assets = getMetricsData(auth, myUrl)
   return assets;
 }
 
-async function getAssetsByName(accessToken, collectionId, assetName) {
+async function getAssetsByName(auth, collectionId, assetName) {
 
   var myUrl = apiBase + '/assets?collectionId=' + collectionId + '&name=' + assetName + '&name-match=exact';
   //console.log('getAssetsByName: ' + myUrl);
-  var asset = await getMetricsData(accessToken, myUrl);
+  var asset = await getMetricsData(auth, myUrl);
   //console.log('getAssetsByName: ' + asset);
   return asset;
 }
 
 
-async function getFindingsByCollectionAndAsset(accessToken, collectionId, assetId) {
+async function getFindingsByCollectionAndAsset(auth, collectionId, assetId) {
 
   //console.log('getFindingsByCollectionAndAsset assetId: ' + assetId);
   var myUrl = apiBase + '/collections/' + collectionId + '/findings?aggregator=ruleId&acceptedOnly=false&assetId=' + assetId;
-  var assets = getMetricsData(accessToken, myUrl)
+  var assets = getMetricsData(auth, myUrl)
   return assets;
 
 }
 
-async function getFindingsByCollection(accessToken, collectionId) {
+async function getFindingsByCollection(auth, collectionId) {
 
   //console.log('getFindingsByCollectionAndAsset assetId: ' + assetId);
   var myUrl = apiBase + '/collections/' + collectionId + 'findings?aggregator=ruleId&acceptedOnly=false';
-  var assets = getMetricsData(accessToken, myUrl)
+  var assets = getMetricsData(auth, myUrl)
   return assets;
 
 }
 
-async function getCollectionMertics(accessToken, collectionId) {
+async function getCollectionMertics(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/detail/collection?format=json';
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
-async function getCollectionMerticsAggreatedByLabel(accessToken, collectionId) {
+async function getCollectionMerticsAggreatedByLabel(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/label?format=json';
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
-async function getCollectionMerticsAggreatedByAsset(accessToken, collectionId) {
+async function getCollectionMerticsAggreatedByAsset(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/asset?format=json';
   //console.log(myUrl);
   try {
-    var metrics = getMetricsData(accessToken, myUrl);
+    var metrics = getMetricsData(auth, myUrl);
     return metrics;
   }
   catch (e) {
@@ -233,81 +338,81 @@ async function getCollectionMerticsAggreatedByAsset(accessToken, collectionId) {
 }
 
 // Return metrics for the specified Collection aggregated by collection ID, stig benchmark, asset ID, label ID
-async function getCollectionMerticsByCollectionBenchmarkAsset(accessToken, collectionId,
+async function getCollectionMerticsByCollectionBenchmarkAsset(auth, collectionId,
   benchmark, assetId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/detail/stig?benchmarkId=' +
     benchmark + '&assetId=' + assetId + '&format=json';
   //console.log(myUrl);
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
 // Return metrics for the specified Collection aggregated by collection ID, stig benchmark, asset ID, label ID
-async function getCollectionMerticsByCollectionAssetAndLabel(accessToken, collectionId, assetId, labelId) {
+async function getCollectionMerticsByCollectionAssetAndLabel(auth, collectionId, assetId, labelId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/detail?assetId=' + assetId + '&labelId=' + labelId
     + '&format=json';
 
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
 // Return metrics for the specified Collection by collection ID, and asset ID
-async function getCollectionMerticsByCollectionAndAsset(accessToken, collectionId, assetId) {
+async function getCollectionMerticsByCollectionAndAsset(auth, collectionId, assetId) {
 
   //collections/1/metrics/detail/stig?benchmarkId=Network_WLAN_AP-NIPR_Mgmt_STIG&assetId=1&labelId=1&format=json
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/detail?assetId=' + assetId + '&format=json';
 
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
-async function getCollectionMerticsUnaggregated(accessToken, collectionId) {
+async function getCollectionMerticsUnaggregated(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/detail?format=json';
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
-async function getCollectionMerticAggregatedByStig(accessToken, collectionId) {
+async function getCollectionMerticAggregatedByStig(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/stig?format=json';
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
-async function getCollectionMerticsdByStig(accessToken, collectionId) {
+async function getCollectionMerticsdByStig(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/stig?format=json';
-  var metrics = getMetricsData(accessToken, myUrl);
+  var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
 }
 
-async function getLabelsByCollection(accessToken, collectionId) {
+async function getLabelsByCollection(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/labels';
   //console.log(myUrl);
   try {
-    var labels = getMetricsData(accessToken, myUrl);
+    var labels = getMetricsData(auth, myUrl);
     return labels;
   } catch (e) {
     console.log(e);
   }
 }
 
-async function getBenchmarkRevisions(accessToken, benchmarkId) {
+async function getBenchmarkRevisions(auth, benchmarkId) {
 
   var myUrl = apiBase + '/stigs/' + benchmarkId + '/revisions';
   //console.log(myUrl);
   try {
-    var revisions = getMetricsData(accessToken, myUrl);
+    var revisions = getMetricsData(auth, myUrl);
     return revisions;
   }
   catch (e) {
@@ -317,13 +422,13 @@ async function getBenchmarkRevisions(accessToken, benchmarkId) {
 }
 
 async function getCollectionBenchmarkChecklist(
-  accessToken, collectionId, benchmarkId, revisionStr) {
+  auth, collectionId, benchmarkId, revisionStr) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/checklists/' + benchmarkId + '/' + revisionStr;
   //console.log(myUrl);
   try {
-    var checklists = getMetricsData(accessToken, myUrl);
+    var checklists = getMetricsData(auth, myUrl);
     return checklists;
   }
   catch (e) {
@@ -332,14 +437,13 @@ async function getCollectionBenchmarkChecklist(
   }
 }
 
-async function getChecklists(
-  accessToken, assetId, benchmarkId, revisionStr) {
+async function getChecklists(auth, assetId, benchmarkId, revisionStr) {
 
   var myUrl = apiBase + '/assets/' + assetId +
     '/checklists/' + benchmarkId + '/' + revisionStr;
   //console.log(myUrl);
   try {
-    var checklists = await getMetricsData(accessToken, myUrl);
+    var checklists = await getMetricsData(auth, myUrl);
     return checklists;
   }
   catch (e) {
@@ -348,12 +452,12 @@ async function getChecklists(
   }
 }
 
-async function getAssetChecklists(accessToken, assetId) {
+async function getAssetChecklists(auth, assetId) {
 
   var myUrl = apiBase + '/assets/' + assetId + '/checklists';
   console.log(myUrl);
   try {
-    var checklists = getMetricsData(accessToken, myUrl);
+    var checklists = getMetricsData(auth, myUrl);
     return checklists;
   }
   catch (e) {
@@ -362,13 +466,13 @@ async function getAssetChecklists(accessToken, assetId) {
   }
 }
 
-async function getMultiStigChecklist(accessToken, assetId, benchmarkId) {
+async function getMultiStigChecklist(auth, assetId, benchmarkId) {
 
   /*
   var myUrl = apiBase + '/assets/' + assetId + '/checklists?benchmarkId=' + benchmarkId;
   console.log(myUrl);
   try {
-    var checklists = await getXMLMetricsData(accessToken, myUrl);
+    var checklists = await getXMLMetricsData(auth, myUrl);
     return checklists;
   }
   catch (e) {
@@ -378,13 +482,13 @@ async function getMultiStigChecklist(accessToken, assetId, benchmarkId) {
 }
 
 async function getReview(
-  accessToken, collectionId, assetId, ruleId) {
+  auth, collectionId, assetId, ruleId) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/reviews/' + assetId + '/' + ruleId;
   //console.log(myUrl);
   try {
-    var reviews = getMetricsData(accessToken, myUrl);
+    var reviews = getMetricsData(auth, myUrl);
     return reviews;
   }
   catch (e) {
@@ -394,13 +498,13 @@ async function getReview(
 }
 
 async function getReviewByGroupId(
-  accessToken, collectionId, assetId, benchmarkId, groupId) {
+  auth, collectionId, assetId, benchmarkId, groupId) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/reviews?rules=all&groupId=' + groupId + '&assetId=' + assetId + '&benchmarkId=' + benchmarkId;
   //console.log(myUrl);
   try {
-    var reviews = getMetricsData(accessToken, myUrl);
+    var reviews = getMetricsData(auth, myUrl);
     return reviews;
   }
   catch (e) {
@@ -410,7 +514,7 @@ async function getReviewByGroupId(
 }
 
 
-async function getReviews(accessToken, collectionId, benchmarkId, ruleId, groupId) {
+async function getReviews(auth, collectionId, benchmarkId, ruleId, groupId) {
 
   var allReviews = [];
   var myUrl = apiBase + '/collections/' + collectionId +
@@ -421,7 +525,7 @@ async function getReviews(accessToken, collectionId, benchmarkId, ruleId, groupI
 
   try {
     //var reviews = await getMetricsData(tokenUtils.getMyTokens().access_token, myUrl);
-   // allReviews = reviews;
+    // allReviews = reviews;
 
     /*
     myUrl = apiBase + '/collections/' + collectionId +
@@ -443,13 +547,13 @@ async function getReviews(accessToken, collectionId, benchmarkId, ruleId, groupI
   }
 }
 
-async function getReviewsByCollection(accessToken, collectionId) {
+async function getReviewsByCollection(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/reviews?status=submitted&projection=stigs';
   //console.log(myUrl);
   try {
-    var reviews = await getMetricsData(accessToken, myUrl);
+    var reviews = await getMetricsData(auth, myUrl);
     return reviews;
   }
   catch (e) {
@@ -458,7 +562,7 @@ async function getReviewsByCollection(accessToken, collectionId) {
   }
 }
 
-async function getReviewsByCollectionAndStig(accessToken, collectionId, benchmarkId) {
+async function getReviewsByCollectionAndStig(auth, collectionId, benchmarkId) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/reviews?result=notapplicable&status=submitted&benchmarkId=' + benchmarkId;
@@ -468,17 +572,17 @@ async function getReviewsByCollectionAndStig(accessToken, collectionId, benchmar
   console.log(myUrl);
   try {
     var allReviews = [];
-    var reviews = await getMetricsData(accessToken, myUrl);
+    var reviews = await getMetricsData(auth, myUrl);
     allReviews = reviews;
 
     myUrl = apiBase + '/collections/' + collectionId +
       '/reviews?result=fail&status=submitted&benchmarkId=' + benchmarkId;
-    reviews = await getMetricsData(accessToken, myUrl);
+    reviews = await getMetricsData(auth, myUrl);
     allReviews = allReviews.concat(reviews);
 
     myUrl = apiBase + '/collections/' + collectionId +
       '/reviews?result=notchecked&status=submitted&benchmarkId=' + benchmarkId;
-    reviews = await getMetricsData(accessToken, myUrl);
+    reviews = await getMetricsData(auth, myUrl);
     allReviews = allReviews.concat(reviews);
 
     return allReviews;
@@ -489,7 +593,7 @@ async function getReviewsByCollectionAndStig(accessToken, collectionId, benchmar
   }
 }
 
-async function getSubmittedReviewsByCollectionAndAsset(accessToken, collectionId, assetId) {
+async function getSubmittedReviewsByCollectionAndAsset(auth, collectionId, assetId) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/reviews/' + assetId + '?status=submitted&projection=stigs';
@@ -507,7 +611,7 @@ async function getSubmittedReviewsByCollectionAndAsset(accessToken, collectionId
   }
 }
 
-async function getAllReviewsByCollectionAndAsset(accessToken, collectionId, assetId) {
+async function getAllReviewsByCollectionAndAsset(auth, collectionId, assetId) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/reviews/' + assetId + '?projection=stigs';
@@ -515,7 +619,7 @@ async function getAllReviewsByCollectionAndAsset(accessToken, collectionId, asse
   //console.log(myUrl);
 
   try {
-   // var reviews = await getMetricsData(tokenUtils.getMyTokens().access_token, myUrl);
+    // var reviews = await getMetricsData(tokenUtils.getMyTokens().access_token, myUrl);
     //return reviews;
   }
   catch (e) {
@@ -524,7 +628,7 @@ async function getAllReviewsByCollectionAndAsset(accessToken, collectionId, asse
   }
 }
 
-async function getReviewByCollectionAndAsset(accessToken, collectionId, assetId) {
+async function getReviewByCollectionAndAsset(auth, collectionId, assetId) {
 
   var myUrl = apiBase + '/collections/' + collectionId +
     '/reviews/' + assetId + '?result=informational&projection=stigs';
@@ -556,7 +660,7 @@ async function getReviewByCollectionAndAsset(accessToken, collectionId, assetId)
   }
 }
 
-async function createLabel(accessToken, collectionId, labelDetails, labelAssetMap) {
+async function createLabel(auth, collectionId, labelDetails, labelAssetMap) {
 
   //var myUrl = apiBase + '/collections/' + collectionId + '/labels';
   //console.log(labelDetails);
@@ -575,20 +679,20 @@ async function createLabel(accessToken, collectionId, labelDetails, labelAssetMa
     labelName = labelDetails.primOwner;
     description = 'Primary Owner';
     color = '0000ff';
-    await mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, accessToken, labelDetails.asset);
+    await mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, auth, labelDetails.asset);
     //console.log(labelAssetMap);
   }
   if (sysAdmin && !sysAdmin == '') {
     labelName = labelDetails.sysAdmin;
     description = 'Sys Admin';
     color = 'ffff00';
-    await mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, accessToken, labelDetails.asset);
+    await mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, auth, labelDetails.asset);
   }
   if (assetType && !assetType == '') {
     labelName = labelDetails.assetType;
     description = 'Asset Type';
     color = '90EE90';
-    await mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, accessToken, labelDetails.asset);
+    await mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, auth, labelDetails.asset);
     //console.log(labelAssetMap);
   }
 
@@ -596,11 +700,11 @@ async function createLabel(accessToken, collectionId, labelDetails, labelAssetMa
 }
 
 async function
-  mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, accessToken, asset) {
+  mapLabelsAndAssets(labelName, description, color, labelAssetMap, collectionId, auth, asset) {
   const mappedAssets = labelAssetMap.get(labelName);
   var labelId = '';
   if (!mappedAssets) {
-    //var label = await saveLabel(accessToken, collectionId, description, labelName, color);
+    //var label = await saveLabel(auth, collectionId, description, labelName, color);
     //console.log(label);
     //labelId = label.labelId;
   }
@@ -610,7 +714,7 @@ async function
 
   var assetToMap;
   if (labelId !== '') {
-    assetToMap = await getAssetsByName(accessToken, collectionId, asset);
+    assetToMap = await getAssetsByName(auth, collectionId, asset);
     //console.log('back from getAssetsByName');
     // wait a second to give server time to process the request
     //await setTimeout(1000);
@@ -627,7 +731,7 @@ async function
 }
 
 /*
-async function saveLabel(accessToken, collectionId, description, name, color, labelAssetMap) {
+async function saveLabel(auth, collectionId, description, name, color, labelAssetMap) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/labels';
 
@@ -642,7 +746,7 @@ async function saveLabel(accessToken, collectionId, description, name, color, la
   const label = await got
     .post(myUrl, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${auth}`,
         'Content-Type': 'application/json'
       },
       body: labelData
@@ -652,7 +756,7 @@ async function saveLabel(accessToken, collectionId, description, name, color, la
   return label;
 }*/
 
-/*async function saveLabelAssetMapping(accessToken, collectionId, labelId, assetIds) {
+/*async function saveLabelAssetMapping(auth, collectionId, labelId, assetIds) {
 
   var myUrl = apiBase + '/collections/' + collectionId + "/labels/" + labelId + '/assets';
   //console.log('saveLabelAssetMapping: ' + myUrl);
@@ -663,7 +767,7 @@ async function saveLabel(accessToken, collectionId, description, name, color, la
     const results = await got
       .put(myUrl, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${auth}`,
           'Content-Type': 'application/json'
         },
         body: content
@@ -677,11 +781,11 @@ async function saveLabel(accessToken, collectionId, description, name, color, la
   }
 }*/
 
-/*async function deleteLabel(accessToken, collectionId, labelId) {
+/*async function deleteLabel(auth, collectionId, labelId) {
 
   //console.log('getAssetsByLabel');
   var myUrl = apiBase + '/collections/' + collectionId + '/labels/' + labelId;
-  var results = getMetricsData(accessToken, myUrl);
+  var results = getMetricsData(auth, myUrl);
   //console.log('delete results: ' + results);
   return results;
 }*/
@@ -707,94 +811,6 @@ async function mapAssetToLabel(labelName, labelId, assetId, labelAssetMap, colle
   }
 
 }
-
-/*function setDeviceCode(myDeviceCodeResponse) {
-  deviceCodeResponse = myDeviceCodeResponse;
-}*/
-
-/*async function getResponseForDeviceCode(oidcBase, client_id, scope) {
-
-  try {
-    const oidcMeta = await getOidcMetadata(oidcBase)
-    if (!oidcMeta.device_authorization_endpoint) {
-      console.log(`Device Authorization grant is not supported by the OIDC Provider`)
-      process.exit(1);
-    }
-    const response = await getDeviceCode(oidcMeta.device_authorization_endpoint,
-      client_id, scope)
-
-    return response;
-  }
-  catch (e) {
-    console.log(e);
-  }
-}*/
-
-/*function wait(ms = 1000) {
- return new Promise(resolve => {
-    setTimeout(resolve, ms)
-  })
-  return
-}*/
-
-/*async function poll(fn, fnCondition, ms) {
-  let myResult = await fn()
-  while (!fnCondition(myResult)) {
-    await wait(ms)
-    myResult = await fn()
-  }
-  return myResult
-  var response = await fn();
-  return response;
-}*/
-
-/*async function getToken(device_code) {
-  try {
-    console.log('Requesting token')
-    const response = await got.post('https://stigman.nren.navy.mil/auth/realms/np-stigman/protocol/openid-connect/token', {
-      form: {
-        grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-        client_id: 'np-stig-manager',
-        device_code
-      }
-    }).json()
-    return response
-  }
-  catch (e) {
-    console.log(e)
-    return {}
-  }
-}*/
-
-/*async function getDeviceCode(url, client_id, scope) {
-  return await got.post(url, {
-    form: {
-      client_id,
-      scope
-    }
-  }).json()
-}*/
-
-/*async function getOidcMetadata(url) {
-  return await got.get(`${url}/.well-known/openid-configuration`).json()
-}*/
-
-/*async function getTokens(response) {
-
-  try {
-
-    open(response.verification_uri_complete);
-    let fetchToken = () => getToken(response.device_code);
-    let validate = result => !!result.access_token
-    let tokens = await poll(fetchToken, validate, response.interval * 1000)
-    console.log(`Got access token from Keycloak`);
-
-    return tokens;
-  }
-  catch (e) {
-    console.log(e);
-  }
-}*/
 
 export {
   getCollections,

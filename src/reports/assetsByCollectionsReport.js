@@ -25,10 +25,13 @@ async function runAssetByCollectionReport(auth, emassNums) {
         var tempCollections = [];
 
         tempCollections = await reportGetters.getCollections(auth);
-        alert('collection 0 name: ' + tempCollections.data[0].name);
+        //alert('collection 0 name: ' + tempCollections.data[0].name);
 
         if (!emassNums || emassNums.length === 0) {
-            collections = tempCollections;
+            //collections = tempCollections;
+            for (var i = 0; i < tempCollections.data.length; i++) {
+                collections.push(tempCollections.data[i])
+            }
         }
         else {
             var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
@@ -43,7 +46,7 @@ async function runAssetByCollectionReport(auth, emassNums) {
                 }
             }
         }
-        emassMap = reportUtils.getCollectionsByEmassNumber(collections);
+        emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var iKey = 0;
         var iKeyend = emassMap.size;
         var myKeys = emassMap.keys();
@@ -75,7 +78,7 @@ async function runAssetByCollectionReport(auth, emassNums) {
             iKey++;
         }
 
-        alert('returning report data');
+        //alert('returning report data');
         return rows;
     }
     catch (e) {

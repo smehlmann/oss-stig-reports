@@ -1,23 +1,23 @@
 var quarters = [
     {
         name: 'Q1',
-        startDate: '10/1/2022',
-        endDate: '12/31/2022'
+        startDate: '10/1/2023',
+        endDate: '12/31/2023'
     },
     {
         name: 'Q2',
-        startDate: '1/1/2023',
-        endDate: '3/31/2023'
+        startDate: '1/1/2024',
+        endDate: '3/31/2024'
     },
     {
         name: 'Q3',
-        startDate: '4/1/2023',
-        endDate: '6/30/2023'
+        startDate: '4/1/2024',
+        endDate: '6/30/2024'
     },
     {
         name: 'Q4',
-        startDate: '7/1/2023',
-        endDate: '9/30/2023'
+        startDate: '7/1/2024',
+        endDate: '9/30/2024'
     }
 ];
 
@@ -64,6 +64,47 @@ function getCollectionsByEmassNumber(collections) {
     return emassMap;
 }
 
+function filterCollectionsByEmassNumber(collections) {
+
+    let emassMap = new Map();
+
+    try {
+        for (var x = 0; x < collections.length; x++) {
+
+            console.log('collectionName: ' + collections[x].name);
+
+            if(!collections[x].name.startsWith('NP_C')) {
+                continue;
+            }
+
+            if(!collections[x].metadata){
+                continue;
+            }
+
+            var emassNum = collections[x].metadata.eMASS;
+            if (emassNum) {
+
+                var myVal = emassMap.get(emassNum);
+                if (myVal) {
+                    myVal.push(collections[x]);
+                    emassMap.set(emassNum, myVal);
+                }
+                else {
+                    myVal = collections[x];
+                    var collVal = [];
+                    collVal.push(myVal);
+                    emassMap.set(emassNum, collVal);
+                }
+            }
+        }
+    }
+    catch (e) {
+        console.log('Error in getCollectionsByEmassNumber');
+        console.log(e);
+    }
+
+    return emassMap;
+}
 
 function getCurrentQuarter() {
 
@@ -191,6 +232,7 @@ function getMetricsAverages(metrics) {
 
 export {
     getCollectionsByEmassNumber,
+    filterCollectionsByEmassNumber,
     getCurrentQuarter,
     getVersionForQuarter,
     getEmassAcronymMap,
