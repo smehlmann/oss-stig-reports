@@ -247,7 +247,7 @@ function OssStigReports() {
             <button className="submit-btn" type="submit">Run Report</button>
             <button className="new-report-btn" type='reset' onClick={newReport}>New Report</button>
             <br /><br />
-            {showData &&  (
+            {showData && report == '1' && (
               <div id='tableDiv'>
                 <div id="csv-ink-div">
                   <CSVLink
@@ -261,8 +261,136 @@ function OssStigReports() {
                 <div>
                   <table>
                     <tbody>
-                      {apiResponse.map((item, index) => (                        
-                         <ReportColumns index={index} item={item} selectedReport={report} />
+                      {apiResponse.map((item, index) => (
+                        <tr key={index}>
+                          <td>
+                            {item.emass}
+                          </td>
+                          <td>
+                            {item.collection}
+                          </td>
+                          <td>
+                            {item.benchmark}
+                          </td>
+                          <td>
+                            {item.stigVersion}
+                          </td>
+                          <td>
+                            {item.assetNames}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {showData && report == '2' && (
+              <div id='tableDiv'>
+                <div id="csv-ink-div">
+                  <CSVLink
+                    data={fileData}
+                    onClick={() => {
+                      //window.location.reload();
+                    }}
+                  >Export report to CSV file.</CSVLink>
+                </div>
+                <br /><br />
+                <div>
+                  <table>
+                    <tbody>
+                      {apiResponse.map((item, index) => (
+                        <tr key={index}>
+                          <td>
+                            {item.collectionName}
+                          </td>
+                          <td>
+                            {item.sumOfStigs}
+                          </td>
+                          <td>
+                            {item.sumOfChecks}
+                          </td>
+                          <td>
+                            {item.avgAssessed}
+                          </td>
+                          <td>
+                            {item.avgSubmitted}
+                          </td>
+                          <td>
+                            {item.avgAccepted}
+                          </td>
+                          <td>
+                            {item.avgRejected}
+                          </td>
+                          <td>
+                            {item.sumOfCat3}
+                          </td>
+                          <td>
+                            {item.sumOfCat2}
+                          </td>
+                          <td>
+                            {item.sumOfCat1}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {showData && report == '9' && (
+              <div id='tableDiv'>
+                <div id="csv-ink-div">
+                  <CSVLink
+                    data={fileData}
+                    onClick={() => {
+                      //window.location.reload();
+                    }}
+                  >Export report to CSV file.</CSVLink>
+                </div>
+                <br /><br />
+                <div>
+                  <table>
+                    <tbody>
+                      {apiResponse.map((item, index) => (
+                        <tr key={index}>
+                          <td>
+                            {item.emass}
+                          </td>
+                          <td>
+                            {item.collectionName}
+                          </td>
+                          <td>
+                            {item.benchmark}
+                          </td>
+                          <td>
+                            {item.latestRev}
+                          </td>
+                          <td>
+                            {item.prevRev}
+                          </td>
+                          <td>
+                            {item.quarterVer}
+                          </td>
+                          <td>
+                            {item.groupId}
+                          </td>
+                          <td>
+                            {item.asset}
+                          </td>
+                          <td>
+                            {item.Result}
+                          </td>
+                          <td>
+                            {item.detail}
+                          </td>
+                          <td>
+                            {item.comment}
+                          </td>
+                          <td>
+                            {item.status}
+                          </td>
+                        </tr>
                       ))}
                     </tbody>
                   </table>

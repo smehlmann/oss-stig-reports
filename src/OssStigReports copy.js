@@ -5,7 +5,6 @@ import { CSVLink } from 'react-csv';
 import Papa from 'papaparse';
 import ClipLoader from "react-spinners/ClipLoader";
 import * as GenerateReport from './reports/GenerateReport.js';
-import ReportColumns from './components/ReportColumns';
 
 
 
@@ -123,9 +122,13 @@ function OssStigReports() {
       setApiResponse(data);
       setFileData(data);
       setShowData(true);
-    });
-
+    })
     setLoading(false);
+    // alert('Number of rows returned' + rows.length);
+
+    // if (rows.length > 0) {
+    //   alert('Report is ready to save. Use the "Download report" link below to save the report.');
+    // }
 
   }
 
@@ -247,7 +250,7 @@ function OssStigReports() {
             <button className="submit-btn" type="submit">Run Report</button>
             <button className="new-report-btn" type='reset' onClick={newReport}>New Report</button>
             <br /><br />
-            {showData &&  (
+            {showData && report == '1' && (
               <div id='tableDiv'>
                 <div id="csv-ink-div">
                   <CSVLink
@@ -261,8 +264,83 @@ function OssStigReports() {
                 <div>
                   <table>
                     <tbody>
-                      {apiResponse.map((item, index) => (                        
-                         <ReportColumns index={index} item={item} selectedReport={report} />
+                      {apiResponse.map((item, index) => (
+                        <tr key={index}>
+                          <td>
+                            {item.emass}
+                          </td>
+                          <td>
+                            {item.collection}
+                          </td>
+                          <td>
+                            {item.benchmark}
+                          </td>
+                          <td>
+                            {item.stigVersion}
+                          </td>
+                          <td>
+                            {item.assetNames}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {showData && report == '9' && (
+              <div id='tableDiv'>
+                <div id="csv-ink-div">
+                  <CSVLink
+                    data={fileData}
+                    onClick={() => {
+                      //window.location.reload();
+                    }}
+                  >Export report to CSV file.</CSVLink>
+                </div>
+                <br /><br />
+                <div>
+                  <table>
+                    <tbody>
+                      {apiResponse.map((item, index) => (
+                        <tr key={index}>
+                          <td>
+                            {item.emass}
+                          </td>
+                          <td>
+                            {item.collectionName}
+                          </td>
+                          <td>
+                            {item.benchmark}
+                          </td>
+                          <td>
+                            {item.latestRev}
+                          </td>
+                          <td>
+                            {item.prevRev}
+                          </td>
+                          <td>
+                            {item.quarterVer}
+                          </td>
+                          <td>
+                            {item.groupId}
+                          </td>
+                          <td>
+                            {item.asset}
+                          </td>
+                          <td>
+                            {item.Result}
+                          </td>
+                          <td>
+                            {item.detail}
+                          </td>
+                          <td>
+                            {item.comment}
+                          </td>
+                          <td>
+                            {item.status}
+                          </td>
+                        </tr>
                       ))}
                     </tbody>
                   </table>
@@ -291,5 +369,6 @@ const RenderRow = (props) => {
     return <td key={props.data[key]}>{props.data[key]}</td>
   })
 }
+
 
 export default OssStigReports;

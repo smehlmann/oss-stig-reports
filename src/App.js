@@ -16,7 +16,6 @@ function App() {
         postLogoutRedirectUri={process.env.REACT_APP_REDIRECT_URI}
         automaticSilentRenew={true}
       >
-        <ManageToken />
         <OssStigReports />
       </AuthProvider>
     </div>

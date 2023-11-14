@@ -179,3 +179,10 @@ div#banner-content {
   margin: 30px;
   font-size: 18px;
 }
+
+div#mySpinner{
+  width:100%;
+  margin: 50px;
+  display: flex;
+  justify-content: center;
+}

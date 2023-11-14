@@ -16,8 +16,7 @@ function ManageToken() {
     ? new Date(auth.userData.expires_at * 1000)
     : null
 
-    /*
-  //const [accessTokenId, setAccessTokenId] = useState(accessToken);
+  const [accessTokenId, setAccessTokenId] = useState(accessToken);
 
   // setting remaining time
   const [remainingTime, setRemainingTime] = useState(expiresIn)
@@ -27,7 +26,7 @@ function ManageToken() {
     // Set initial value
     setRemainingTime(expiresIn)
 
-    // Update every second
+    // Update every second every half second
     const intervalId = setInterval(() => {
       setRemainingTime(prev => (prev > 0 ? prev - 1 : 0)); // Prevent negative values
     }, 1000)
@@ -39,9 +38,11 @@ function ManageToken() {
   // event handler for token expiring
   const handleTokenExpiring = () => {
     console.log('Access token expiring event fired');
+    console.log('Before setAccessTokenId idToken: ' + idToken);
     //alert('Access token expiring event fired');
     console.log(auth.userData);
-    //setAccessTokenId(auth.userData?.access_token);
+    setAccessTokenId(auth.userData?.access_token);
+    console.log('After setAccessTokenId idToken: ' + idToken);
   };
 
   // adding event listener for token expiring from oidc-react 
@@ -65,7 +66,7 @@ function ManageToken() {
     const end = token.substring(token.length - 8)
     return `${start}...${end}`
   }
-*/
+  
   // error handling for if auth is null/undefined or userData doesn't exist
   if (!auth || !auth.userData) {
     // Handle the situation where auth is null/undefined or userData doesn't exist
