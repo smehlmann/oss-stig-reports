@@ -220,6 +220,56 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                 </tr>
             );
+            case '10':
+            return (
+                <tr key={index}>
+                    <td>
+                        {index}
+                    </td>
+                    <td>
+                        {item.datePulled}
+                    </td>
+                    <td>
+                        {item.code}
+                    </td>
+                    <td>
+                        {item.shortName}
+                    </td>
+                    <td>
+                        {item.collectionName}
+                    </td>
+                    <td>
+                        {item.asset}
+                    </td>
+                    <td>
+                        {item.primOwner}
+                    </td>
+                    <td>
+                        {item.sysAdmin}
+                    </td>
+                    <td>
+                        {item.deviceType}
+                    </td>
+                    <td>
+                        {item.lastTouched}
+                    </td>
+                    <td>
+                        {item.stigs}
+                    </td>
+                    <td>
+                        {item.assessed}
+                    </td>
+                    <td>
+                        {item.submitted}
+                    </td>
+                    <td>
+                        {item.accepted}
+                    </td>
+                    <td>
+                        {item.rejected}
+                    </td>
+                </tr>
+            );
         default:
             return null;
     }
