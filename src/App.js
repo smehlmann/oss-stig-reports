@@ -1,7 +1,10 @@
 import React from 'react'
 import { AuthProvider } from 'oidc-react'
-import ManageToken from './ManageToken'
+//import ManageToken from './ManageToken'
 import OssStigReports from './OssStigReports';
+import { Provider } from 'react-redux';
+import store from './store/index.js';
+
 
 // main app component
 function App() {
@@ -16,8 +19,11 @@ function App() {
         postLogoutRedirectUri={process.env.REACT_APP_REDIRECT_URI}
         automaticSilentRenew={true}
       >
-        <OssStigReports />
+        <Provider store={store}>
+          <OssStigReports />
+        </Provider>
       </AuthProvider>
+
     </div>
   )
 }

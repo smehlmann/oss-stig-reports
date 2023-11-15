@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from 'oidc-react';
+import { useSelector, useDispatch } from 'react-redux';
 import './App.css';
 import { CSVLink } from 'react-csv';
 import Papa from 'papaparse';
@@ -18,6 +19,10 @@ function OssStigReports() {
   /*===============================================================*/
   /* Logic for refreshing token before it expires */
   /*===============================================================*/
+  const dispatch = useDispatch();
+  // set the new auth value in the data store
+  dispatch({ type: 'refresh', auth: auth });
+  
   const expiresIn = auth.userData?.expires_in
   // calculate the expiration date/time
   const expDate = auth.userData?.expires_at
@@ -45,6 +50,10 @@ function OssStigReports() {
   const handleTokenExpiring = () => {
     console.log('Access token expiring event fired');
     console.log(auth.userData);
+
+    // set the new auth value in the data store
+    dispatch({ type: 'refresh', auth: auth });
+    
     //setAccessTokenId(auth.userData?.access_token);
   };
 
@@ -220,7 +229,7 @@ function OssStigReports() {
                 checked={report === "9"}
                 onChange={onRadioChange}
               />
-              <span>7. Stig Benchmark By Results</span>
+              <span>7. STIG Benchmark By Results</span>
             </label>
             <br />
             <label>
