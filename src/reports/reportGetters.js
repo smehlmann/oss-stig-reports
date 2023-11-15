@@ -2,7 +2,10 @@
 import axios from 'axios'
 import { useAuth } from 'oidc-react';
 import { AuthContext } from 'oidc-react';
-import * as UseNewAuth from './UseNewAuth.js';
+import { getAuth } from '../store/index.js';
+
+
+//import * as UseNewAuth from './UseNewAuth.js';
 //import open from 'open'
 //import { stringify } from 'csv-stringify/sync'
 //import { setTimeout } from 'timers/promises'
@@ -63,26 +66,12 @@ async function getNewToken(refreshToken) {
   }
 }
 
-function getAuth() {
-
-  console.log('Requesting new auth');
-  var react_1 = require("react");
-
-  var useMyAuth = function () {
-    var context = (0, react_1.useContext)(AuthContext.AuthContext);
-    if (!context) {
-      throw new Error('AuthProvider context is undefined, please verify you are calling useAuth() as child of a <AuthProvider> component.');
-    }
-    return useMyAuth;
-  };
-}
-
-
 async function getMetricsData(auth, myUrl) {
 
+  var storedAuth = getAuth();
 
   //console.log(myUrl);
-  var accessToken = auth.userData?.access_token;
+  var accessToken = storedAuth.userData?.access_token;
 
   try {
     var resp = await axios.get(myUrl, {
@@ -104,16 +93,12 @@ async function getMetricsData(auth, myUrl) {
     }
 
     console.log('Get new token');
-    alert('Need token refresh');
-    //resp = useNewAuth(myUrl);
-    //var refreshToken = auth.userData?.refresh_token;
-    //var useMyAuth = getAuth();
-    //var react_1 = require("react");
-    //var myAuth = (0, react_1.useContext)(AuthContext.AuthContext);
 
-    /*var myAuth = UseNewAuth.UseMyAuth();
+    storedAuth =getAuth();
+    console.log('Access token in getMetricsData catch');
+    console.log(auth.userData);
 
-    accessToken = myAuth.userData?.access_token;
+    accessToken = storedAuth.userData?.access_token;
     //accessToken = myAuth.userData?.access_token;
     //var refreshToken = myAuth.userData?.refresh_token
 
@@ -121,7 +106,7 @@ async function getMetricsData(auth, myUrl) {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
-    });*/
+    });
 
     return resp;
 
@@ -186,15 +171,8 @@ async function getXMLMetricsData(auth, myUrl) {
       return null;
     }
     console.log('Get new token');
-    //auth = getAuth();
-    //var newToken = await tokenUtils.refreshTokens();
-    //const response = await got.get(myUrl, {
-    // headers: {
-    // Authorization: `Bearer ${newToken.access_token}`
   }
-  //});
-  //var myResponse = parser.toJson(response.bodys);
-  //return myResponse;
+  
   return null;
 }
 
