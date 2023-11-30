@@ -55,20 +55,20 @@ async function runAssetByCollectionReport(auth, emassNums) {
             var emassNum = myKeys.next().value;
             var myCollections = emassMap.get(emassNum);
 
-            for (var i = 0; i < myCollections.length; i++) {
-                //console.log("Requesting STIGS");
-                console.log('myCollections: ' + myCollections[i]);
+            for (var j = 0; j < myCollections.length; j++) {
+                //console.log("Requesting STIGS");j                
+                console.log('myCollections: ' + myCollections[j]);
 
-                var collectionName = myCollections[i].name;
+                var collectionName = myCollections[j].name;
                 var strToRemove = '_' + emassNum + '_';
                 collectionName = collectionName.replace(strToRemove, '');
-                stigs = await reportGetters.getStigs(auth, myCollections[i].collectionId);
+                stigs = await reportGetters.getStigs(auth, myCollections[j].collectionId);
                 //console.log(stigs)
 
                 //console.log("Requesting assets")
                 for (var k = 0; k < stigs.data.length; k++) {
                     assets.length = 0;
-                    assets = await reportGetters.getAssets(auth, myCollections[i].collectionId, stigs.data[k].benchmarkId)
+                    assets = await reportGetters.getAssets(auth, myCollections[j].collectionId, stigs.data[k].benchmarkId)
                     //console.log(assets)
 
                     var myData = getRow(emassNum, collectionName, stigs.data[k], assets)

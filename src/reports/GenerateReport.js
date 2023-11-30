@@ -7,10 +7,16 @@ import * as saReportWithMetricsAndVersions from './saReportWithMetricsAndVersion
 import * as stigBenchmarkByResults from './stigBenchmarkByResults.js';
 import * as exportSaReportsByAsset from './exportSaReportByAsset.js';
 
-async function GenerateReport(auth, selection, emassNums) {
+async function GenerateReport(auth, selection, inEmassNums) {
 
 
     var rows = [];
+
+    var emassNums = "";
+    // remove whitespace from the eMASS string
+    if (inEmassNums && inEmassNums.length > 0){
+        emassNums = inEmassNums.replaceAll(' ', '');
+    }
     try {
         switch (selection) {
             case '1':
