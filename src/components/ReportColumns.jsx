@@ -5,9 +5,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
             return (
                 <tr key={index}>
                     <td>
-                        {index}
-                    </td>
-                    <td>
                         {item.emass}
                     </td>
                     <td>
@@ -27,9 +24,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
         case '2':
             return (
                 <tr key={index}>
-                    <td>
-                        {index}
-                    </td>
                     <td>
                         {item.collectionName}
                     </td>
@@ -66,9 +60,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
             return (
                 <tr key={index}>
                     <td>
-                        {index}
-                    </td>
-                    <td>
                         {item.collectionName}
                     </td>
                     <td>
@@ -79,9 +70,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
         case '5':
             return (
                 <tr key={index}>
-                    <td>
-                        {index}
-                    </td>
                     <td>
                         {item.collectionName}
                     </td>
@@ -114,9 +102,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
             return (
                 <tr key={index}>
                     <td>
-                        {index}
-                    </td>
-                    <td>
                         {item.emassNum}
                     </td>
                     <td>
@@ -127,9 +112,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
         case '8':
             return (
                 <tr key={index}>
-                    <td>
-                        {index}
-                    </td>
                     <td>
                         {item.collectionName}
                     </td>
@@ -180,9 +162,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
             return (
                 <tr key={index}>
                     <td>
-                        {index}
-                    </td>
-                    <td>
                         {item.emass}
                     </td>
                     <td>
@@ -223,9 +202,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
             case '10':
             return (
                 <tr key={index}>
-                    <td>
-                        {index}
-                    </td>
                     <td>
                         {item.datePulled}
                     </td>
