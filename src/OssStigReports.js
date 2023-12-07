@@ -3,7 +3,6 @@ import { useAuth } from 'oidc-react';
 import { useSelector, useDispatch } from 'react-redux';
 import './App.css';
 import { CSVLink } from 'react-csv';
-import Papa from 'papaparse';
 import ClipLoader from "react-spinners/ClipLoader";
 import * as GenerateReport from './reports/GenerateReport.js';
 import ReportColumns from './components/ReportColumns';
@@ -22,7 +21,7 @@ function OssStigReports() {
   const dispatch = useDispatch();
   // set the new auth value in the data store
   dispatch({ type: 'refresh', auth: auth });
-  
+
   const expiresIn = auth.userData?.expires_in
   // calculate the expiration date/time
   const expDate = auth.userData?.expires_at
@@ -53,7 +52,7 @@ function OssStigReports() {
 
     // set the new auth value in the data store
     dispatch({ type: 'refresh', auth: auth });
-    
+
     //setAccessTokenId(auth.userData?.access_token);
   };
 
@@ -84,13 +83,12 @@ function OssStigReports() {
   const [apiResponse, setApiResponse] = useState([]);
   const [fileData, setFileData] = useState('');
   const [report, setReport] = useState('');
-  const [disabled, setDisabled] = useState(true);
-  const [fileName, setFileName] = useState('');
-  const [output, setOutput] = useState('');
   const [emassNums, setEmassNums] = useState('');
   const [showEmassNum, setShowEmassNums] = useState(false);
   const [showData, setShowData] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isButtonDisabled, setButtonDisabled] = useState(false);
+  const [disableNewReport, setDisableNewReport] = useState(false);
 
   var jsonData = null;
 
@@ -99,9 +97,6 @@ function OssStigReports() {
   const onRadioChange = (e) => {
     setReport(e.target.value);
     setShowEmassNums(true);
-    //accessToken = auth.userData?.access_token;
-    //accessTokenId = auth.userData?.id_token;
-    //alert('token ID: ' + accessTokenId);
   }
 
   const updateEmass = (event) => {
@@ -110,6 +105,12 @@ function OssStigReports() {
   };
 
   const newReport = (e) => {
+
+    window.location.reload();
+  }
+
+  const cancelReport = (e) => {
+
     window.location.reload();
   }
 
@@ -119,6 +120,7 @@ function OssStigReports() {
 
   const handleSubmit = async (e) => {
 
+
     e.preventDefault();
 
     if (report === '') {
@@ -126,7 +128,13 @@ function OssStigReports() {
       return;
     }
 
+    if (isButtonDisabled === true) {
+      return;
+    }
+
     setLoading(true);
+    setButtonDisabled(true);
+    setDisableNewReport(true);
 
     await callAPI(auth, report, emassNums).then((data) => {
       setApiResponse(data);
@@ -135,6 +143,8 @@ function OssStigReports() {
     });
 
     setLoading(false);
+    setButtonDisabled(true);
+    setDisableNewReport(false);
 
   }
 
@@ -168,6 +178,7 @@ function OssStigReports() {
                 value="1"
                 checked={report === "1"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>1. RMF SAP Report</span>
             </label>
@@ -178,6 +189,7 @@ function OssStigReports() {
                 value="2"
                 checked={report === "2"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>2. STIG Status per Collection</span>
             </label>
@@ -188,6 +200,7 @@ function OssStigReports() {
                 value="4"
                 checked={report === "4"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>3. Asset Status per Collection</span>
             </label>
@@ -198,6 +211,7 @@ function OssStigReports() {
                 value="5"
                 checked={report === "5"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>4. Asset Collection per Primary Owner and System Admin</span>
             </label>
@@ -208,6 +222,7 @@ function OssStigReports() {
                 value="7"
                 checked={report === "7"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>5. Asset Status per eMASS</span>
             </label>
@@ -218,6 +233,7 @@ function OssStigReports() {
                 value="8"
                 checked={report === "8"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>6. STIG Deltas per Primary Owner and System Admin</span>
             </label>
@@ -228,6 +244,7 @@ function OssStigReports() {
                 value="9"
                 checked={report === "9"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>7. STIG Benchmark By Results</span>
             </label>
@@ -238,25 +255,28 @@ function OssStigReports() {
                 value="10"
                 checked={report === "10"}
                 onChange={onRadioChange}
+                disabled={isButtonDisabled}
               />
               <span>8. Export Asset Collection per Primary Owner and System Admin</span>
             </label>
             <br /><br />{showEmassNum && (
               <div id='emassDiv'>
-                <label htmlFor="emassNumsText">Optional: Enter EMASS Numbers: </label>
+                <label htmlFor="emassNumsText">Optional: Enter EMASS Numbers separated by commas: </label>
                 <input
                   id='emassNumsText'
                   type='text'
                   value={emassNums}
                   onChange={updateEmass}
+                  disabled={isButtonDisabled}
                 />
               </div>
             )}
             <br />
-            <button className="submit-btn" type="submit">Run Report</button>
-            <button className="new-report-btn" type='reset' onClick={newReport}>New Report</button>
+            <button className="submit-btn" type="submit" disabled={isButtonDisabled}>Run Report</button>
+            <button className="cancel-report-btn" type='reset' onClick={cancelReport} disabled={false}>Canecl Report</button>
+            <button className="new-report-btn" type='reset' onClick={newReport} disabled={disableNewReport}>New Report</button>
             <br /><br />
-            {showData &&  (
+            {showData && (
               <div id='tableDiv'>
                 <div id="csv-ink-div">
                   <CSVLink
@@ -270,8 +290,8 @@ function OssStigReports() {
                 <div>
                   <table>
                     <tbody>
-                      {apiResponse.map((item, index) => (                        
-                         <ReportColumns index={index} item={item} selectedReport={report} />
+                      {apiResponse.map((item, index) => (
+                        <ReportColumns index={index} item={item} selectedReport={report} />
                       ))}
                     </tbody>
                   </table>

@@ -1,15 +1,14 @@
-import React from 'react'
-import { AuthProvider } from 'oidc-react'
-//import ManageToken from './ManageToken'
+import logo from './logo.svg';
+import './App.css';
+
+import { AuthProvider } from 'oidc-react';
 import OssStigReports from './OssStigReports';
 import { Provider } from 'react-redux';
 import store from './store/index.js';
 
-
-// main app component
 function App() {
   return (
-    <div>
+    <div className="App">
       <AuthProvider
         authority={process.env.REACT_APP_AUTH_CONNECT_URL}
         clientId={process.env.REACT_APP_CLIENT_ID}
@@ -20,12 +19,11 @@ function App() {
         automaticSilentRenew={true}
       >
         <Provider store={store}>
-          <OssStigReports />
+        <OssStigReports />
         </Provider>
       </AuthProvider>
-
     </div>
-  )
+  );
 }
 
 export default App;

@@ -75,5 +75,3 @@ function ManageToken() {
 
   return;
 }
-
-export default ManageToken
