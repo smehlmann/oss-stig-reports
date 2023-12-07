@@ -1,26 +1,11 @@
 //import got from 'got';
 import axios from 'axios'
 import { useAuth } from 'oidc-react';
-import { AuthContext } from 'oidc-react';
 import { getAuth } from '../store/index.js';
 
-
-//import * as UseNewAuth from './UseNewAuth.js';
-//import open from 'open'
-//import { stringify } from 'csv-stringify/sync'
-//import { setTimeout } from 'timers/promises'
-//import * as tokenUtils from './tokenUtils.js'
-//import * as util from 'util'
-//import * as xml2js from 'xml2js'
-
 const apiBase = 'https://stigman.nren.navy.mil/np/api';
-const oidcBase = 'https://stigman.nren.navy.mil/auth/realms/np-stigman'
-const client_id = 'np-stig-manager'
-
-const scope =
-  'openid stig-manager:collection stig-manager:user stig-manager:stig stig-manager:op stig-manager:stig:read stig-manager:stig:write'
-var deviceCodeResponse;
-
+const oidcBase = 'https://stigman.nren.navy.mil/auth/realms/np-stigman';
+const client_id = 'np-stig-manager';
 
 async function useNewAuth(myUrl) {
 
@@ -94,7 +79,7 @@ async function getMetricsData(auth, myUrl) {
 
     console.log('Get new token');
 
-    storedAuth =getAuth();
+    storedAuth = getAuth();
     console.log('Access token in getMetricsData catch');
     console.log(auth.userData);
 
@@ -172,7 +157,7 @@ async function getXMLMetricsData(auth, myUrl) {
     }
     console.log('Get new token');
   }
-  
+
   return null;
 }
 
