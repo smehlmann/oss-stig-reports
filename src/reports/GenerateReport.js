@@ -1,11 +1,11 @@
 import * as assetsByCollectionsReport from './assetsByCollectionsReport.js';
 import * as statusReport from './statusReport.js';
 import * as assetCountReport from './assetCountReport.js';
-import * as saReport from './saReport.js';
-import * as assetCountReportByEmass from './assetCountReportByEmass.js';
+import * as saReportByAsset from './saReportByAsset.js';
 import * as saReportWithMetricsAndVersions from './saReportWithMetricsAndVersions.js';
 import * as stigBenchmarkByResults from './stigBenchmarkByResults.js';
 import * as exportSaReportsByAsset from './exportSaReportByAsset.js';
+import * as saReportByLabelAndEmass from './saReportByLabelAndEmass.js';
 
 async function GenerateReport(auth, selection, inEmassNums) {
 
@@ -34,11 +34,11 @@ async function GenerateReport(auth, selection, inEmassNums) {
                 break;
             case '5':
                 console.log('Run 4. Asset Collection per Primary Owner and System Admin');
-                rows = await saReport.runSAReport(auth, emassNums);
+                rows = await saReportByAsset.runSAReportByAsset(auth, emassNums);
                 break;
             case '7':
                 console.log('Run 5.  Asset Status per eMASS');
-                rows = await assetCountReportByEmass.runAssetCountReportByEmass(auth, emassNums);
+                rows = await saReportByLabelAndEmass.runSAReportByLabelAndEmass(auth, emassNums);
                 break;
             case '8':
                 console.log('Run 6. STIG Deltas per Primary Owner and System Admin');

@@ -1,13 +1,14 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runSAReportWithMetricsAndVersions(auth, emassNums) {
+async function runSAReportByAsset(auth, emassNums) {
 
     try {
 
-        const currentQuarter = reportUtils.getCurrentQuarter();
+        //const prompt = promptSync();
+        //const collectionName = prompt('Enter collection name.');
 
-        console.log(`runSAReportWithMetricsAndVersions: Requesting STIG Manager Collections`);
+        console.log(`runStatusReportByAsset: Requesting STIG Manager Collections`);
         //console.log(`runStatusReport: Requesting STIG Manager Data for collection ` + collectionName);
         var collections = [];
         var tempCollections = [];
@@ -33,20 +34,26 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
             }
         }
 
+        //console.log(collections);
+        //const collections = await reportGetters.getCollectionByName(auth, collectionName);
+
         var metrics = [];
         var labels = [];
         let labelMap = new Map();
 
         var rows = [
             {
+                datePulled: 'Date Pulled',
+                code: 'Code',
+                shortName: 'Short Name',
                 collectionName: 'Collection',
                 asset: 'Asset',
                 primOwner: 'Primary Owner',
                 sysAdmin: 'Sys Admin',
-                benchmarks: 'STIG Benchmark',
-                latestRev: 'Latest Revision',
-                prevRev: 'Previous Revision',
-                quarterVer: 'Current Quarter STIG Version',
+                deviveType: 'Device-Asset',
+                lastTouched: 'Last Touched',
+                stigs: 'STIGs',
+                benchmarks: 'Benchmarks',
                 assessed: 'Assessed',
                 submitted: 'Submitted',
                 accepted: 'Accepted',
@@ -57,15 +64,18 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
             }
         ];
 
+        var today = new Date();
+        var todayStr = today.toISOString().substring(0, 10);
 
         for (var i = 0; i < collections.length; i++) {
             var collectionName = collections[i].name;
-            console.log('collection name: ' + collectionName);
 
             if (!collectionName.startsWith('NP_C')) {
                 continue;
             }
 
+
+            //console.log(collectionName);
             labelMap.clear();
             labels.length = 0;
            
@@ -74,57 +84,13 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
                 labelMap.set(labels.data[x].labelId, labels.data[x].description);
             }
 
-
             metrics = await reportGetters.getCollectionMerticsAggreatedByAsset(auth, collections[i].collectionId);
-            console.log('num metrics: ' + metrics.data.length);
+            //console.log(metrics);
 
-            for (var iMetrics = 0; iMetrics < metrics.data.length; iMetrics++) {
+            for (var j = 0; j < metrics.data.length; j++) {
+                var myData = getRow(todayStr, collections[i], metrics.data[j], labelMap);
+                rows.push(myData);
 
-                var benchmarkIDs = metrics.data[iMetrics].benchmarkIds;
-                console.log('num benchmarks: ' + benchmarkIDs.length);
-
-                for (var idx = 0; idx < benchmarkIDs.length; idx++) {
-
-                    console.log('benchmarkId: ' + benchmarkIDs[idx]);
-
-                    var revisions = await reportGetters.getBenchmarkRevisions(auth, benchmarkIDs[idx]);
-
-                    var latestRev = '';
-                    var prevRev = '';
-                    var latestRevDate = '';
-                    var prevRevDate = '';
-                    if (revisions) {
-                        for (var bmIdx = 0; bmIdx < revisions.data.length && bmIdx < 2; bmIdx++) {
-                            if (bmIdx === 0) {
-                                latestRev = revisions.data[bmIdx].revisionStr;
-                                latestRevDate = revisions.data[bmIdx].benchmarkDate;
-                            }
-                            else if (bmIdx === 1) {
-                                prevRev = revisions.data[bmIdx].revisionStr;
-                                prevRevDate = revisions.data[bmIdx].benchmarkDate;
-                            }
-                        }
-                    }
-                    else {
-                        var stig = await reportGetters.getStigById(auth, benchmarkIDs[idx]);
-
-                        latestRev = stig.data.lastRevisionStr;
-                        latestRevDate = stig.data.lastRevisionDate;
-                    }
-
-                    var myData = getRow(
-                        collectionName,
-                        metrics.data[iMetrics],
-                        labelMap,
-                        latestRev,
-                        latestRevDate,
-                        prevRev,
-                        benchmarkIDs[idx],
-                        currentQuarter);
-
-                    rows.push(myData);
-
-                }
             }
         }
     }
@@ -135,25 +101,42 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
     return rows;
 }
 
-function getRow(collectionName,
-    metrics,
-    labelMap,
-    latestRev,
-    latestRevDate,
-    prevRev,
-    benchmarkID,
-    currentQuarter) {
+function getRow(todayStr, collection, metrics, labelMap) {
 
-    const quarterVer = reportUtils.getVersionForQuarter(currentQuarter, latestRevDate, latestRev);
+    var collectionName = collection.name;
+    var code = collection.metadata.Code;
+    var shortName = collection.metadata.ShortName;
 
     const numAssessments = metrics.metrics.assessments;
     const numAssessed = metrics.metrics.assessed;
     const numSubmitted = metrics.metrics.statuses.submitted;
     const numAccepted = metrics.metrics.statuses.accepted;
     const numRejected = metrics.metrics.statuses.rejected;
+    const numSaved = metrics.metrics.statuses.rejected;
+    const numAssets = metrics.assets;
+
+    var maxTouchTs = metrics.metrics.maxTouchTs;
+    var touchDate = new Date(maxTouchTs);
+    var today = new Date();
+    var timeDiff = today - touchDate;
+    var diffInHours = timeDiff / (1000 * 3600);
+    var diffInDays = timeDiff / (1000 * 3600 * 24);
+    var lastTouched = "";
+
+    // set lastTouched to either hours or days
+    if (diffInDays < 1) {
+        var touched = Math.round(diffInHours);
+        lastTouched = touched + ' h';
+    }
+    else {
+        var touched = Math.round(diffInDays);
+        lastTouched = touched.toString() + ' d';
+    }
 
     var primOwner = "";
+    var secOwner = "";
     var sysAdmin = "";
+    var device = "";
     var labelName = "";
     for (var iLabel = 0; iLabel < metrics.labels.length; iLabel++) {
 
@@ -161,10 +144,18 @@ function getRow(collectionName,
 
         if (labelDesc) {
             if (labelDesc.toUpperCase() === 'PRIMARY OWNER') {
-                primOwner = metrics.labels[iLabel].name;
+                if (primOwner === "") {
+                    primOwner = metrics.labels[iLabel].name;
+                }
+                else {
+                    secOwner = metrics.labels[iLabel].name;
+                }
             }
             else if (labelDesc.toUpperCase() === 'SYS ADMIN') {
                 sysAdmin = metrics.labels[iLabel].name;
+            }
+            else if (labelDesc.toUpperCase() === 'ASSET TYPE') {
+                device = metrics.labels[iLabel].name;
             }
             else {
                 labelName = metrics.labels[iLabel].name;
@@ -175,6 +166,8 @@ function getRow(collectionName,
         }
     }
 
+    const numUnassessed = numAssessments - numAssessed;
+    const totalChecks = numAssessments;
 
     var avgAssessed = 0;
     var avgSubmitted = 0;
@@ -201,15 +194,21 @@ function getRow(collectionName,
     const sumOfCat2 = metrics.metrics.findings.medium;
     const sumOfCat1 = metrics.metrics.findings.high;
 
+    var benchmarkIDs = metrics.benchmarkIds.toString();
+    benchmarkIDs = benchmarkIDs.replaceAll(",", " ");
+            
     var rowData = {
+        datePulled: todayStr,
+        code: code,
+        shortName: shortName,
         collectionName: collectionName,
         asset: metrics.name,
         primOwner: primOwner,
         sysAdmin: sysAdmin,
-        benchmarks: benchmarkID,
-        latestRev: latestRev,
-        prevRev: prevRev,
-        quarterVer: quarterVer,
+        deviveType: device,
+        lastTouched: lastTouched,
+        stigs: metrics.benchmarkIds.length,
+        benchmarks: benchmarkIDs,
         assessed: avgAssessed + '%',
         submitted: avgSubmitted + '%',
         accepted: avgAccepted + '%',
@@ -223,4 +222,4 @@ function getRow(collectionName,
 
 }
 
-export { runSAReportWithMetricsAndVersions };
+export { runSAReportByAsset };
