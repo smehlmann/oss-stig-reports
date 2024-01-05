@@ -102,10 +102,34 @@ export default function ReportColumns({ index, item, selectedReport }) {
             return (
                 <tr key={index}>
                     <td>
-                        {item.emassNum}
+                        {item.emass}
                     </td>
                     <td>
-                        {item.assetCount}
+                        {item.acronym}
+                    </td>
+                    <td>
+                        {item.asset}
+                    </td>
+                    <td>
+                        {item.assessed}
+                    </td>
+                    <td>
+                        {item.submitted}
+                    </td>
+                    <td>
+                        {item.accepted}
+                    </td>
+                    <td>
+                        {item.rejected}
+                    </td>
+                    <td>
+                        {item.cat3}
+                    </td>
+                    <td>
+                        {item.cat2}
+                    </td>
+                    <td>
+                        {item.cat1}
                     </td>
                 </tr>
             );
