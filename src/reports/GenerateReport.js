@@ -6,6 +6,7 @@ import * as saReportWithMetricsAndVersions from './saReportWithMetricsAndVersion
 import * as stigBenchmarkByResults from './stigBenchmarkByResults.js';
 import * as exportSaReportsByAsset from './exportSaReportByAsset.js';
 import * as saReportByLabelAndEmass from './saReportByLabelAndEmass.js';
+import * as checklistOver365Days from './checklistOver365Days.js';
 
 async function GenerateReport(auth, selection, inEmassNums) {
 
@@ -14,7 +15,7 @@ async function GenerateReport(auth, selection, inEmassNums) {
 
     var emassNums = "";
     // remove whitespace from the eMASS string
-    if (inEmassNums && inEmassNums.length > 0){
+    if (inEmassNums && inEmassNums.length > 0) {
         emassNums = inEmassNums.replaceAll(' ', '');
     }
     try {
@@ -47,12 +48,17 @@ async function GenerateReport(auth, selection, inEmassNums) {
             case '9':
                 // run STIG Benchmark by Results
                 console.log('Run 7. STIG Benchmark By Results');
-                rows = await stigBenchmarkByResults.runStigBenchmarkByResults(auth, emassNums,);
+                rows = await stigBenchmarkByResults.runStigBenchmarkByResults(auth, emassNums);
                 break;
             case '10':
                 // run STIG Benchmark by Results
                 console.log('Run 8. Export Asset Collection per Primary Owner and System Admin');
-                rows = await exportSaReportsByAsset.runExportSAReportByAsset(auth, emassNums,);
+                rows = await exportSaReportsByAsset.runExportSAReportByAsset(auth, emassNums);
+                break;
+            case '11':
+                // run Checklist Over 356 days
+                console.log('Run 9. Checklist Over 365 Days');
+                rows = await checklistOver365Days.runChecklistOver365Days(auth, emassNums);
                 break;
             default:
                 alert('You must provide a valid report option.');

@@ -94,30 +94,6 @@ async function getMetricsData(auth, myUrl) {
     });
 
     return resp;
-
-    /*const response = await axios.post('https://stigman.nren.navy.mil/auth/realms/np-stigman/protocol/openid-connect/token', {
-            form: {
-                grant_type: 'refresh_token',
-                refresh_token: accessToken,
-                client_id: 'np-stig-manager'
-            }
-        }).json();*/
-
-    /*var resp = await axios.get(myUrl, {
-      headers: {
-        Authorization: `Bearer ${refreshToken}`
-      }
-    });
-
-    return resp;*/
-
-    //var newToken = await tokenUtils.refreshTokens();
-    //var newToken = await tokenUtils.getTokens(oidcBase, client_id, scope);
-    /*return await got.get(myUrl, {
-      headers: {
-        Authorization: `Bearer ${newToken.access_token}`
-      }
-    }).json();*/
   }
 }
 
