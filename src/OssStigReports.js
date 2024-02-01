@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from 'oidc-react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import './App.css';
 import { CSVLink } from 'react-csv';
 import ClipLoader from "react-spinners/ClipLoader";
@@ -128,6 +128,11 @@ function OssStigReports() {
       return;
     }
 
+    if((report === '11' || report === '8') && emassNums === ''){
+      alert('You must enter EMASS number(s)');
+      return;
+    }
+
     if (isButtonDisabled === true) {
       return;
     }
@@ -235,7 +240,7 @@ function OssStigReports() {
                 onChange={onRadioChange}
                 disabled={isButtonDisabled}
               />
-              <span>6. STIG Deltas per Primary Owner and System Admin</span>
+              <span>6. STIG Deltas per Primary Owner and System Admin (EMASS number(s) required)</span>
             </label>
             <br />
             <label>
@@ -259,9 +264,20 @@ function OssStigReports() {
               />
               <span>8. Export Asset Collection per Primary Owner and System Admin</span>
             </label>
+            <br />
+            <label>
+              <input
+                type="radio"
+                value="11"
+                checked={report === "11"}
+                onChange={onRadioChange}
+                disabled={isButtonDisabled}
+              />
+              <span>9. Checklist Over 356 Days (EMASS number(s) required)</span>
+            </label>
             <br /><br />{showEmassNum && (
               <div id='emassDiv'>
-                <label htmlFor="emassNumsText">Optional: Enter EMASS Numbers separated by commas: </label>
+                <label htmlFor="emassNumsText">Optional except for reports 6 and 9: Enter EMASS Number(s) separated by commas: </label>
                 <input
                   id='emassNumsText'
                   type='text'
