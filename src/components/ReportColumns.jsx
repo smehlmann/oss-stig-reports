@@ -223,7 +223,7 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                 </tr>
             );
-            case '10':
+        case '10':
             return (
                 <tr key={index}>
                     <td>
@@ -267,6 +267,59 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                     <td>
                         {item.rejected}
+                    </td>
+                </tr>
+            );
+        case '11':
+            return (
+                <tr key={index}>
+                    <td>
+                        {item.collectionName}
+                    </td>
+                    <td>
+                        {item.asset}
+                    </td>
+                    <td>
+                        {item.primOwner}
+                    </td>
+                    <td>
+                        {item.sysAdmin}
+                    </td>
+                    <td>
+                        {item.benchmark}
+                    </td>
+                    <td>
+                        {item.revision}
+                    </td>
+                    <td>
+                        {item.groupId}
+                    </td>
+                    <td>
+                        {item.result}
+                    </td>
+                    <td>
+                        {item.detail}
+                    </td>
+                    <td>
+                        {item.comment}
+                    </td>
+                    <td>
+                        {item.modifiedDate}
+                    </td>
+                    <td>
+                        {item.modifiedBy}
+                    </td> 
+                    <td>
+                        {item.ruleId}
+                    </td>
+                    <td>
+                        {item.status}
+                    </td>
+                    <td>
+                        {item.statusDate}
+                    </td>
+                    <td>
+                        {item.checkedBy}
                     </td>
                 </tr>
             );
