@@ -88,17 +88,24 @@ async function runChecklistOver365Days(auth, emassNums) {
             for (var iMetrics = 0; iMetrics < metrics.data.length; iMetrics++) {
 
                 var minTs = metrics.data[iMetrics].metrics.minTs;
-                var maxTs = metrics.data[iMetrics].metrics.maxTs;
                 var diffInDays = reportUtils.calcDiffInDays(minTs);
-                if (diffInDays < 365) {
+                if (diffInDays < 360) {
                     continue;
                 }
 
                 var assetId = metrics.data[iMetrics].assetId;
                 var assetName = metrics.data[iMetrics].name;
 
-                var stigs = await reportGetters.getStigsByAsset(auth, assetId);
+                //var stigs = await reportGetters.getStigsByAsset(auth, assetId);
+                var stigs = await reportGetters.getCollectionMerticsdByStig(auth, collectionId);
                 for (var iStigs = 0; iStigs < stigs.data.length; iStigs++) {
+
+                    var minTs = stigs.data[iStigs].metrics.minTs;
+                    var diffInDays = reportUtils.calcDiffInDays(minTs);
+                    if (diffInDays < 360) {
+                        continue;
+                    }
+
                     var benchmarkId = stigs.data[iStigs].benchmarkId;
                     var revisionStr = stigs.data[iStigs].revisionStr;
 
@@ -124,7 +131,7 @@ async function runChecklistOver365Days(auth, emassNums) {
 
                             var modifiedDate = reviews.data[iReviews].ts;
                             diffInDays = reportUtils.calcDiffInDays(modifiedDate);
-                            if (diffInDays < 365) {
+                            if (diffInDays < 360) {
                                 continue;
                             }
 
