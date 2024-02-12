@@ -1,48 +1,33 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runSAReportWithMetricsAndVersions(auth, emassNums) {
+async function runSAReportWithMetricsAndVersions(auth, emassNums, collections, emassMap) {
 
     try {
 
-        const currentQuarter = reportUtils.getCurrentQuarter();
-
         console.log(`runSAReportWithMetricsAndVersions: Requesting STIG Manager Collections`);
-        //console.log(`runStatusReport: Requesting STIG Manager Data for collection ` + collectionName);
-        var collections = [];
-        var tempCollections = [];
 
-        tempCollections = await reportGetters.getCollections(auth);
-        if (!emassNums || emassNums.length === 0) {
-            //collections = tempCollections;
-            for (var j = 0; j < tempCollections.data.length; j++) {
-                collections.push(tempCollections.data[j])
-            }
-        }
-        else {
-            var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
-            var emassArray = emassNums.split(',');
-            for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-                if (emassMap.has(emassArray[mapIdx])) {
-
-                    var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                    if (mappedCollection) {
-                        collections = collections.concat(mappedCollection);
-                    }
-                }
-            }
-        }
+        const currentQuarter = reportUtils.getCurrentQuarter();
 
         var metrics = [];
         var labels = [];
         let labelMap = new Map();
 
-        var rows = [
+        var rows = [];
+        /*var rows = [
             {
+
+                
+
                 collectionName: 'Collection',
                 asset: 'Asset',
+                deviveType: 'Device-Asset',
                 primOwner: 'Primary Owner',
                 sysAdmin: 'Sys Admin',
+                rmfAction: "RMF Action",
+                isso: "ISSO",
+                ccbSAActions: 'CCB_SA_Actions',
+                other: "OTHER",
                 benchmarks: 'STIG Benchmark',
                 latestRev: 'Latest Revision',
                 prevRev: 'Previous Revision',
@@ -55,7 +40,7 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
                 cat2: 'CAT2',
                 cat1: 'CAT1'
             }
-        ];
+        ];*/
 
 
         for (var i = 0; i < collections.length; i++) {
@@ -68,7 +53,7 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
 
             labelMap.clear();
             labels.length = 0;
-           
+
             labels = await reportGetters.getLabelsByCollection(auth, collections[i].collectionId);
             for (var x = 0; x < labels.data.length; x++) {
                 labelMap.set(labels.data[x].labelId, labels.data[x].description);
@@ -92,7 +77,6 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
                     var latestRev = '';
                     var prevRev = '';
                     var latestRevDate = '';
-                    var prevRevDate = '';
                     if (revisions) {
                         for (var bmIdx = 0; bmIdx < revisions.data.length && bmIdx < 2; bmIdx++) {
                             if (bmIdx === 0) {
@@ -101,7 +85,6 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums) {
                             }
                             else if (bmIdx === 1) {
                                 prevRev = revisions.data[bmIdx].revisionStr;
-                                prevRevDate = revisions.data[bmIdx].benchmarkDate;
                             }
                         }
                     }
@@ -152,29 +135,7 @@ function getRow(collectionName,
     const numAccepted = metrics.metrics.statuses.accepted;
     const numRejected = metrics.metrics.statuses.rejected;
 
-    var primOwner = "";
-    var sysAdmin = "";
-    var labelName = "";
-    for (var iLabel = 0; iLabel < metrics.labels.length; iLabel++) {
-
-        var labelDesc = labelMap.get(metrics.labels[iLabel].labelId);
-
-        if (labelDesc) {
-            if (labelDesc.toUpperCase() === 'PRIMARY OWNER') {
-                primOwner = metrics.labels[iLabel].name;
-            }
-            else if (labelDesc.toUpperCase() === 'SYS ADMIN') {
-                sysAdmin = metrics.labels[iLabel].name;
-            }
-            else {
-                labelName = metrics.labels[iLabel].name;
-            }
-        }
-        else {
-            labelName = metrics.labels[iLabel].name;
-        }
-    }
-
+    const collectionMetadata = reportUtils.getMetadata(labelMap, metrics);
 
     var avgAssessed = 0;
     var avgSubmitted = 0;
@@ -204,8 +165,13 @@ function getRow(collectionName,
     var rowData = {
         collectionName: collectionName,
         asset: metrics.name,
-        primOwner: primOwner,
-        sysAdmin: sysAdmin,
+        deviveType: collectionMetadata.device,
+        primOwner: collectionMetadata.primOwner,
+        sysAdmin: collectionMetadata.sysAdmin,
+        rmfAction: collectionMetadata.rmfAction,
+        isso: collectionMetadata.isso,
+        ccbSAActions: collectionMetadata.ccbSAActions,
+        other: collectionMetadata.other,
         benchmarks: benchmarkID,
         latestRev: latestRev,
         prevRev: prevRev,

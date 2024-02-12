@@ -1,34 +1,12 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runStigBenchmarkByResults(auth, args) {
+async function runStigBenchmarkByResults(auth, args, collections, emassMap) {
 
     const currentQuarter = reportUtils.getCurrentQuarter();
-
-    var collections = [];
-    var tempCollections = [];
-    var numRowsAdded = 0;
-
-    // Get collections
-    tempCollections = await reportGetters.getCollections(auth);
-    if (!args || args.length === 0) {
-        collections = tempCollections.data;
-    }
-    else {
-        var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
-        var emassArray = args.split(',');
-        for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-            if (emassMap.has(emassArray[mapIdx])) {
-
-                var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                if (mappedCollection) {
-                    collections = collections.concat(mappedCollection);
-                }
-            }
-        }
-    }
-
-    var rows = [
+    
+    var rows = [];
+    /*var rows = [
         {
             collectionName: 'Collection',
             benchmark: 'STIG Benchmark',
@@ -42,7 +20,7 @@ async function runStigBenchmarkByResults(auth, args) {
             comment: 'Comment',
             status: 'Status'
         }
-    ];
+    ];*/
 
     try {
         var startDate = new Date();

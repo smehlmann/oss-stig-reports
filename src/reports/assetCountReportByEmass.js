@@ -34,13 +34,14 @@ async function runAssetCountReportByEmass(auth, emassNums) {
         emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var metrics = [];
 
-        var rows = [
+        var rows = [];
+        /*var rows = [
             {
                 emassNum: 'EMASS Number',
                 assetCount: 'Asset Count'
             }
 
-        ];
+        ];*/
 
         var iKey = 0;
         var iKeyend = emassMap.size;

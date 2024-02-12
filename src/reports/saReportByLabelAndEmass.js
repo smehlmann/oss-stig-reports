@@ -1,44 +1,17 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runSAReportByLabelAndEmass(auth, emassNums) {
+async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap) {
 
     try {
 
-
         //console.log(`runSAReportByLabelAndEmass Requesting STIG Manager Data for collection ` + collectionName);
-
-        var collections = [];
-        var tempCollections = [];
-
-        tempCollections = await reportGetters.getCollections(auth);
-        if (!emassNums || emassNums.length === 0) {
-            //collections = tempCollections;
-            for (var j = 0; j < tempCollections.data.length; j++) {
-                collections.push(tempCollections.data[j])
-            }
-        }
-        else {
-            var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
-            var emassArray = emassNums.split(',');
-            for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-                if (emassMap.has(emassArray[mapIdx])) {
-
-                    var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                    if (mappedCollection) {
-                        collections = collections.concat(mappedCollection);
-                    }
-                }
-            }
-        }
-
-        //console.log(collections);
-
         var emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var acronymMap = reportUtils.getEmassAcronymMap();
 
         var metrics = [];
-        var rows = [
+        var rows = [];
+        /*var rows = [
             {
                 emass: 'eMASS Number',
                 acronym: 'eMASS Acronym',
@@ -51,7 +24,7 @@ async function runSAReportByLabelAndEmass(auth, emassNums) {
                 cat2: 'CAT2',
                 cat1: 'CAT1'
             }
-        ];
+        ];*/
 
         var iKey = 0;
         var iKeyend = emassMap.size;

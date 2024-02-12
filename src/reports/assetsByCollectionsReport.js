@@ -1,7 +1,7 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runAssetByCollectionReport(auth, emassNums) {
+async function runAssetByCollectionReport(auth, emassNums, collections, emassMap) {
 
     try {
 
@@ -11,7 +11,8 @@ async function runAssetByCollectionReport(auth, emassNums) {
         var stigs = [];
         var assets = [];
 
-        var rows = [
+        var rows = [];
+        /*var rows = [
             {
                 emass: 'EMASS',
                 collection: 'Collection',
@@ -19,33 +20,8 @@ async function runAssetByCollectionReport(auth, emassNums) {
                 stigVersion: 'Version',
                 assetNames: 'Assets'
             }
-        ]
+        ]*/
 
-        var collections = [];
-        var tempCollections = [];
-
-        tempCollections = await reportGetters.getCollections(auth);
-        //alert('collection 0 name: ' + tempCollections.data[0].name);
-
-        if (!emassNums || emassNums.length === 0) {
-            //collections = tempCollections;
-            for (var i = 0; i < tempCollections.data.length; i++) {
-                collections.push(tempCollections.data[i])
-            }
-        }
-        else {
-            var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
-            var emassArray = emassNums.split(',');
-            for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-                if (emassMap.has(emassArray[mapIdx])) {
-
-                    var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                    if (mappedCollection) {
-                        collections = collections.concat(mappedCollection);
-                    }
-                }
-            }
-        }
         emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var iKey = 0;
         var iKeyend = emassMap.size;

@@ -1,54 +1,31 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runExportSAReportByAsset(auth, args) {
+async function runExportSAReportByAsset(auth, args, collections, emassMap) {
 
     try {
 
-        //const prompt = promptSync();
-        //const collectionName = prompt('Enter collection name.');
-
-        console.log(`runExportSAReportByAsset: Requesting STIG Manager Collections`);
-        //console.log(`runStatusReport: Requesting STIG Manager Data for collection ` + collectionName);
-        var collections = [];
-        var tempCollections = [];
-
-        // Get collections
-        tempCollections = await reportGetters.getCollections(auth);
-        if (!args || args.length === 0) {
-            collections = tempCollections.data;
-        }
-        else {
-            var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
-            var emassArray = args.split(',');
-            for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-                if (emassMap.has(emassArray[mapIdx])) {
-
-                    var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                    if (mappedCollection) {
-                        collections = collections.concat(mappedCollection);
-                    }
-                }
-            }
-        }
-
         //console.log(collections);
-        //const collections = await reportGetters.getCollectionByName(tokens.access_token, collectionName);
 
         var metrics = [];
         var labels = [];
         let labelMap = new Map();
 
-        var rows = [
+        var rows = [];
+        /*var rows = [
             {
                 datePulled: 'Date Pulled',
                 code: 'Code',
                 shortName: 'Short Name',
                 collectionName: 'Collection',
                 asset: 'Asset',
-                primOwner: 'Primary Owner',
-                sysAdmin: 'Sys Admin',
                 deviveType: 'Device-Asset',
+                primOwner: 'Primary Owner',
+                sysAdmin: 'Sys Admin',                
+                rmfAction: "RMF Action",
+                isso: "ISSO",
+                ccbSAActions: 'CCB_SA_Actions',
+                other: "OTHER",
                 lastTouched: 'Last Touched',
                 stigs: 'STIGs',
                 assessed: 'Assessed',
@@ -56,7 +33,7 @@ async function runExportSAReportByAsset(auth, args) {
                 accepted: 'Accepted',
                 rejected: 'Rejected'
             }
-        ];
+        ];*/
 
         var today = new Date();
         var todayStr = today.toISOString().substring(0, 10);
@@ -140,27 +117,7 @@ function getRow(todayStr, collection, metrics, labelMap) {
         lastTouched = touched.toString() + ' d';
     }
 
-    var primOwner = "";
-    var sysAdmin = "";
-    var device = "";
-    for (var iLabel = 0; iLabel < metrics.labels.length; iLabel++) {
-
-        var labelDesc = labelMap.get(metrics.labels[iLabel].labelId);
-
-        if (labelDesc) {
-            if (labelDesc.toUpperCase() === 'PRIMARY OWNER') {
-                if (primOwner === "") {
-                    primOwner = metrics.labels[iLabel].name;
-                }
-            }
-            else if (labelDesc.toUpperCase() === 'SYS ADMIN') {
-                sysAdmin = metrics.labels[iLabel].name;
-            }
-            else if (labelDesc.toUpperCase() === 'ASSET TYPE') {
-                device = metrics.labels[iLabel].name;
-            }
-        }
-    }
+    const collectionMetadata = reportUtils.getMetadata(labelMap, metrics);
 
     var avgAssessed = 0;
     var avgSubmitted = 0;
@@ -189,9 +146,13 @@ function getRow(todayStr, collection, metrics, labelMap) {
         shortName: shortName,
         collectionName: collectionName,
         asset: metrics.name,
-        primOwner: primOwner,
-        sysAdmin: sysAdmin,
-        deviveType: device,
+        deviveType: collectionMetadata.device,
+        primOwner: collectionMetadata.primOwner,
+        sysAdmin: collectionMetadata.sysAdmin,
+        rmfAction: collectionMetadata.rmfAction,
+        isso: collectionMetadata.isso,
+        ccbSAActions: collectionMetadata.ccbSAActions,
+        other: collectionMetadata.other,
         lastTouched: lastTouched,
         stigs: metrics.benchmarkIds.length,
         assessed: avgAssessed + '%',

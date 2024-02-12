@@ -1,7 +1,6 @@
 import * as reportGetters from './reportGetters.js';
-import * as reportUtils from './reportUtils.js';
 
-async function runAssetCountReport(auth, emassNums) {
+async function runAssetCountReport(auth, emassNums, collections, emassMap) {
 
     try {
 
@@ -9,37 +8,14 @@ async function runAssetCountReport(auth, emassNums) {
         console.log(`runAssetCountReport: Requesting STIG Manager Data`);
         
         var metrics = [];
-        var collections = [];
-        var tempCollections = [];
-
-        tempCollections = await reportGetters.getCollections(auth);
-        if (!emassNums || emassNums.length === 0) {
-            //collections = tempCollections;
-            for (var j = 0; j < tempCollections.data.length; j++) {
-                collections.push(tempCollections.data[j])
-            }
-        }
-        else {
-            var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
-            var emassArray = emassNums.split(',');
-            for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-                if (emassMap.has(emassArray[mapIdx])) {
-
-                    var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                    if (mappedCollection) {
-                        collections = collections.concat(mappedCollection);
-                    }
-                }
-            }
-        }
-
-        var rows = [
+        var rows = [];
+        /*var rows = [
             {
                 collectionName: 'Collection',
                 assetCount: 'Asset Count'
             }
 
-        ];
+        ];*/
 
         for (var i = 0; i < collections.length; i++) {
             var collectionName = collections[i].name;
@@ -63,13 +39,6 @@ async function runAssetCountReport(auth, emassNums) {
 }
 
 function getRow(collectionName, metrics) {
-
-    const sumOfStigs = metrics.data.stigs;
-    var totalAssetCount = 0;
-
-
-    // get metrics data
-    totalAssetCount = metrics.data.assets;
 
     var rowData = {
         collectionName: collectionName,

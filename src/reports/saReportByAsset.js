@@ -1,38 +1,9 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runSAReportByAsset(auth, emassNums) {
+async function runSAReportByAsset(auth, emassNums, collections, emassMap) {
 
     try {
-
-        //const prompt = promptSync();
-        //const collectionName = prompt('Enter collection name.');
-
-        console.log(`runStatusReportByAsset: Requesting STIG Manager Collections`);
-        //console.log(`runStatusReport: Requesting STIG Manager Data for collection ` + collectionName);
-        var collections = [];
-        var tempCollections = [];
-
-        tempCollections = await reportGetters.getCollections(auth);
-        if (!emassNums || emassNums.length === 0) {
-            //collections = tempCollections;
-            for (var j = 0; j < tempCollections.data.length; j++) {
-                collections.push(tempCollections.data[j])
-            }
-        }
-        else {
-            var emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections);
-            var emassArray = emassNums.split(',');
-            for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-                if (emassMap.has(emassArray[mapIdx])) {
-
-                    var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                    if (mappedCollection) {
-                        collections = collections.concat(mappedCollection);
-                    }
-                }
-            }
-        }
 
         //console.log(collections);
         //const collections = await reportGetters.getCollectionByName(auth, collectionName);
@@ -41,16 +12,21 @@ async function runSAReportByAsset(auth, emassNums) {
         var labels = [];
         let labelMap = new Map();
 
-        var rows = [
+        var rows = [];
+        /*var rows = [
             {
                 datePulled: 'Date Pulled',
                 code: 'Code',
                 shortName: 'Short Name',
                 collectionName: 'Collection',
                 asset: 'Asset',
-                primOwner: 'Primary Owner',
-                sysAdmin: 'Sys Admin',
                 deviveType: 'Device-Asset',
+                primOwner: 'Primary Owner',
+                sysAdmin: 'Sys Admin',                
+                rmfAction: "RMF Action",
+                isso: "ISSO",
+                ccbSAActions: 'CCB_SA_Actions',
+                other: "OTHER",
                 lastTouched: 'Last Touched',
                 stigs: 'STIGs',
                 benchmarks: 'Benchmarks',
@@ -62,13 +38,14 @@ async function runSAReportByAsset(auth, emassNums) {
                 cat2: 'CAT2',
                 cat1: 'CAT1'
             }
-        ];
+        ];*/
 
         var today = new Date();
         var todayStr = today.toISOString().substring(0, 10);
 
         for (var i = 0; i < collections.length; i++) {
             var collectionName = collections[i].name;
+            console.log('runSAReportByAsset collectionName: ' + collectionName);
 
             if (!collectionName.startsWith('NP_C')) {
                 continue;
@@ -78,7 +55,7 @@ async function runSAReportByAsset(auth, emassNums) {
             //console.log(collectionName);
             labelMap.clear();
             labels.length = 0;
-           
+
             labels = await reportGetters.getLabelsByCollection(auth, collections[i].collectionId);
             for (var x = 0; x < labels.data.length; x++) {
                 labelMap.set(labels.data[x].labelId, labels.data[x].description);
@@ -87,8 +64,8 @@ async function runSAReportByAsset(auth, emassNums) {
             metrics = await reportGetters.getCollectionMerticsAggreatedByAsset(auth, collections[i].collectionId);
             //console.log(metrics);
 
-            for (var j = 0; j < metrics.data.length; j++) {
-                var myData = getRow(todayStr, collections[i], metrics.data[j], labelMap);
+            for (var jMetrics = 0; jMetrics < metrics.data.length; jMetrics++) {
+                var myData = getRow(todayStr, collections[i], metrics.data[jMetrics], labelMap);
                 rows.push(myData);
 
             }
@@ -112,8 +89,6 @@ function getRow(todayStr, collection, metrics, labelMap) {
     const numSubmitted = metrics.metrics.statuses.submitted;
     const numAccepted = metrics.metrics.statuses.accepted;
     const numRejected = metrics.metrics.statuses.rejected;
-    const numSaved = metrics.metrics.statuses.rejected;
-    const numAssets = metrics.assets;
 
     var maxTouchTs = metrics.metrics.maxTouchTs;
     var touchDate = new Date(maxTouchTs);
@@ -124,51 +99,22 @@ function getRow(todayStr, collection, metrics, labelMap) {
     var lastTouched = "";
 
     // set lastTouched to either hours or days
+    var touched = "";
     if (diffInDays < 1) {
-        var touched = Math.round(diffInHours);
+        touched = Math.round(diffInHours);
         lastTouched = touched + ' h';
     }
     else {
-        var touched = Math.round(diffInDays);
+        touched = Math.round(diffInDays);
         lastTouched = touched.toString() + ' d';
     }
 
-    var primOwner = "";
-    var secOwner = "";
-    var sysAdmin = "";
-    var device = "";
-    var labelName = "";
-    for (var iLabel = 0; iLabel < metrics.labels.length; iLabel++) {
-
-        var labelDesc = labelMap.get(metrics.labels[iLabel].labelId);
-
-        if (labelDesc) {
-            if (labelDesc.toUpperCase() === 'PRIMARY OWNER') {
-                if (primOwner === "") {
-                    primOwner = metrics.labels[iLabel].name;
-                }
-                else {
-                    secOwner = metrics.labels[iLabel].name;
-                }
-            }
-            else if (labelDesc.toUpperCase() === 'SYS ADMIN') {
-                sysAdmin = metrics.labels[iLabel].name;
-            }
-            else if (labelDesc.toUpperCase() === 'ASSET TYPE') {
-                device = metrics.labels[iLabel].name;
-            }
-            else {
-                labelName = metrics.labels[iLabel].name;
-            }
-        }
-        else {
-            labelName = metrics.labels[iLabel].name;
-        }
+    if(collectionName === 'NP_C10-UnclassCore_Servers_1761_Zone A' && (metrics.name === 'NPK8VDIESX29' || metrics.name === 'npa0aznessus01')){
+        
+        console.log(collectionName + ' ' + metrics.name);
     }
 
-    const numUnassessed = numAssessments - numAssessed;
-    const totalChecks = numAssessments;
-
+    const collectionMetadata = reportUtils.getMetadata(labelMap, metrics);
     var avgAssessed = 0;
     var avgSubmitted = 0;
     var avgAccepted = 0;
@@ -196,16 +142,20 @@ function getRow(todayStr, collection, metrics, labelMap) {
 
     var benchmarkIDs = metrics.benchmarkIds.toString();
     benchmarkIDs = benchmarkIDs.replaceAll(",", " ");
-            
+
     var rowData = {
         datePulled: todayStr,
         code: code,
         shortName: shortName,
         collectionName: collectionName,
         asset: metrics.name,
-        primOwner: primOwner,
-        sysAdmin: sysAdmin,
-        deviveType: device,
+        deviveType: collectionMetadata.device,
+        primOwner: collectionMetadata.primOwner,
+        sysAdmin: collectionMetadata.sysAdmin,
+        rmfAction: collectionMetadata.rmfAction,
+        isso: collectionMetadata.isso,
+        ccbSAActions: collectionMetadata.ccbSAActions,
+        other: collectionMetadata.other,
         lastTouched: lastTouched,
         stigs: metrics.benchmarkIds.length,
         benchmarks: benchmarkIDs,

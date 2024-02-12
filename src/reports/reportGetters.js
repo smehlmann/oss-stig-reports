@@ -4,8 +4,6 @@ import { useAuth } from 'oidc-react';
 import { getAuth } from '../store/index.js';
 
 const apiBase = 'https://stigman.nren.navy.mil/np/api';
-const oidcBase = 'https://stigman.nren.navy.mil/auth/realms/np-stigman';
-const client_id = 'np-stig-manager';
 
 async function useNewAuth(myUrl) {
 
@@ -138,6 +136,19 @@ async function getXMLMetricsData(auth, myUrl) {
 }
 
 async function getCollections(auth) {
+
+  try {
+    var myUrl = apiBase + '/collections';
+    var collections = getMetricsData(auth, myUrl);
+    return collections;
+  }
+  catch (e) {
+    console.log('Error in getCollections');
+    console.log(e);
+  }
+}
+
+async function getCollectionsMetrics(auth) {
 
   try {
     var myUrl = apiBase + '/collections';
@@ -318,7 +329,7 @@ async function getCollectionMerticsUnaggregated(auth, collectionId) {
 
 }
 
-async function getCollectionMerticAggregatedByStig(auth, collectionId) {
+async function getCollectionMerticsdByStig(auth, collectionId) {
 
   var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/stig?format=json';
   var metrics = getMetricsData(auth, myUrl);
@@ -326,9 +337,10 @@ async function getCollectionMerticAggregatedByStig(auth, collectionId) {
 
 }
 
-async function getCollectionMerticsdByStig(auth, collectionId) {
+async function getCollectionMerticsSummary(auth, collectionId) {
 
-  var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/stig?format=json';
+  //var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/collection?format=json';
+  var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary?format=json';
   var metrics = getMetricsData(auth, myUrl);
   return metrics;
 
@@ -453,32 +465,16 @@ async function getReviewByGroupId(
 }
 
 
-async function getReviews(auth, collectionId, benchmarkId, ruleId, groupId) {
+async function getReviews(auth, collectionId, assetId, benchmarkId, ruleId, groupId) {
 
-  var allReviews = [];
   var myUrl = apiBase + '/collections/' + collectionId +
-    '/reviews?status=submitted&ruleId=' + ruleId + '&groupId=' + groupId + '&benchmarkId=' + benchmarkId;
-  // '/reviews?result=informational&status=submitted&ruleId=' + ruleId + '&groupId=' + groupId + '&benchmarkId=' + benchmarkId;
+    '/reviews?ruleId=' + ruleId + '&groupId=' + groupId + '&assetId=' + assetId + '&benchmarkId=' + benchmarkId;
+
   //console.log(myUrl);
 
-
   try {
-    //var reviews = await getMetricsData(tokenUtils.getMyTokens().access_token, myUrl);
-    // allReviews = reviews;
-
-    /*
-    myUrl = apiBase + '/collections/' + collectionId +
-    '/reviews?result=fail&status=submitted&ruleId=' + ruleId + '&groupId=' + groupId;
-    reviews = await getMetricsData(tokenUtils.getMyTokens().access_token, myUrl);
-    allReviews = allReviews.concat(reviews);
-
-    myUrl = apiBase + '/collections/' + collectionId +
-      '/reviews?result=notchecked&status=submitted&benchmarkId=' + benchmarkId;
-    reviews = await getMetricsData(tokenUtils.getMyTokens().access_token, myUrl);
-    allReviews = allReviews.concat(reviews);
-    */
-
-    return allReviews;
+    var reviews = await getMetricsData(auth, myUrl);
+    return reviews;
   }
   catch (e) {
     console.log('getReviews error: ' + e);
@@ -766,6 +762,7 @@ export {
   getFindingsByCollectionAndAsset,
   getFindingsByCollection,
   getCollectionMertics,
+  getCollectionMerticsSummary,
   getCollectionMerticsByCollectionBenchmarkAsset,
   getCollectionMerticsByCollectionAndAsset,
   getCollectionMerticsByCollectionAssetAndLabel,

@@ -1,3 +1,6 @@
+import { getAuth } from '../store/index.js';
+import * as reportGetters from './reportGetters.js';
+
 var quarters = [
     {
         name: 'Q1',
@@ -61,8 +64,6 @@ function getCurrentQuarter() {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1;
-    const currentDay = currentDate.getDate();
-
 
     var retQuarter = null;
     for (var i = 0; i < quarters.length; i++) {
@@ -70,7 +71,7 @@ function getCurrentQuarter() {
         var splitEndDate = quarters[i].endDate.split('/');
 
         // Are the years the same?
-        if (splitStartDate[2] == currentYear) {
+        if (splitStartDate[2] === currentYear) {
             // is the month within range
             if ((currentMonth >= splitStartDate[0]) && currentMonth <= splitEndDate[0]) {
                 retQuarter = quarters[i];
@@ -100,7 +101,7 @@ function getVersionForQuarter(quarter, versionDateStr, versionStr) {
 
     /* check that the years are the same */
     if (splitVersionDateStr[0] === startSplitDate[2] &&
-        splitVersionDateStr[0] == endSplitDate[2]) {
+        splitVersionDateStr[0] === endSplitDate[2]) {
 
         /* check if the month is in range for the quarter */
         if ((parseInt(splitVersionDateStr[1]) >= parseInt(startSplitDate[1])) &&
@@ -154,8 +155,6 @@ function getMetricsAverages(metrics) {
     const numSubmitted = metrics.metrics.statuses.submitted;
     const numAccepted = metrics.metrics.statuses.accepted;
     const numRejected = metrics.metrics.statuses.rejected;
-    const numSaved = metrics.metrics.statuses.rejected;
-    const numAssets = metrics.assets;
 
     const avgAssessed = numAssessments ? (numAssessed / numAssessments) * 100 : 0;
     //const avgAssessed = Math.round(numAssessments ? (numAssessed / numAssessments) * 100 : 0);
@@ -180,7 +179,7 @@ function getMetricsAverages(metrics) {
     return averages;
 }
 
-function calcDiffInDays(minTs){
+function calcDiffInDays(minTs) {
 
     var touchDate = new Date(minTs);
     var today = new Date();
@@ -195,7 +194,7 @@ function resultAbbreviation(result) {
 
     var abbrev = '';
 
-    if(!result || result === 'null' || result === 'undefined'){
+    if (!result || result === 'null' || result === 'undefined') {
         return abbrev;
     }
 
@@ -232,11 +231,11 @@ function filterCollectionsByEmassNumber(collections) {
 
             console.log('collectionName: ' + collections[x].name);
 
-            if(!collections[x].name.startsWith('NP_C')) {
+            if (!collections[x].name.startsWith('NP_C')) {
                 continue;
             }
 
-            if(!collections[x].metadata){
+            if (!collections[x].metadata) {
                 continue;
             }
 
@@ -265,6 +264,89 @@ function filterCollectionsByEmassNumber(collections) {
     return emassMap;
 }
 
+async function getAllCollections(emassNums, emassMap) {
+
+    var storedAuth = getAuth();
+    var collections = [];
+    var tempCollections = [];
+
+    tempCollections = await reportGetters.getCollections(storedAuth);
+    if (!emassNums || emassNums.length === 0) {
+        //collections = tempCollections;
+        for (var j = 0; j < tempCollections.data.length; j++) {
+            collections.push(tempCollections.data[j])
+        }
+    }
+    else {
+        emassMap = getCollectionsByEmassNumber(tempCollections);
+        var emassArray = emassNums.split(',');
+        for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
+            if (emassMap.has(emassArray[mapIdx])) {
+
+                var mappedCollection = emassMap.get(emassArray[mapIdx]);
+                if (mappedCollection) {
+                    collections = collections.concat(mappedCollection);
+                }
+            }
+        }
+    }
+
+    return collections;
+}
+
+function getMetadata(labelMap, metrics) {
+
+    var collectionMetadata =
+    {
+        primOwner: "",
+        sysAdmin: "",
+        device: "",
+        ccbSAActions: "",
+        rmfAction: "",
+        isso: "",
+        other: ""
+    }
+
+    if(metrics.name === 'NPK8VDIESX29'){
+        console.log('asset: ' + metrics.name);
+    }
+    const labels = metrics.labels;
+    var labelDesc = '';
+
+    for (var iLabel = 0; iLabel < labels.length; iLabel++) {
+
+        labelDesc = labelMap.get(labels[iLabel].labelId).toUpperCase();
+
+        switch (labelDesc) {
+            case 'PRIMARY OWNER':
+                collectionMetadata.primOwner = labels[iLabel].name;
+                break;
+            case 'SYS ADMIN':
+                collectionMetadata.sysAdmin = labels[iLabel].name;
+                break;
+            case 'CCB_SA_ACTIONS':
+                collectionMetadata.ccbSAActions = labels[iLabel].name;
+                break;
+            case 'RMF Action':
+                collectionMetadata.rmfAction = labels[iLabel].name;
+                break;
+            case 'ISSO':
+                collectionMetadata.isso = labels[iLabel].name;
+                break;
+            case 'OTHER':
+                collectionMetadata.other = labels[iLabel].name;
+                break;
+            case 'ASSET TYPE':
+                collectionMetadata.device = labels[iLabel].name;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return collectionMetadata;
+}
+
 export {
     getCollectionsByEmassNumber,
     getCurrentQuarter,
@@ -273,5 +355,7 @@ export {
     getMetricsAverages,
     calcDiffInDays,
     resultAbbreviation,
-    filterCollectionsByEmassNumber
+    filterCollectionsByEmassNumber,
+    getAllCollections,
+    getMetadata
 };

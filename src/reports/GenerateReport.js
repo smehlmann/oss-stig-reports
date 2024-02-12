@@ -7,6 +7,7 @@ import * as stigBenchmarkByResults from './stigBenchmarkByResults.js';
 import * as exportSaReportsByAsset from './exportSaReportByAsset.js';
 import * as saReportByLabelAndEmass from './saReportByLabelAndEmass.js';
 import * as checklistOver365Days from './checklistOver365Days.js';
+import * as reportUtils from './reportUtils.js';
 
 async function GenerateReport(auth, selection, inEmassNums) {
 
@@ -19,46 +20,52 @@ async function GenerateReport(auth, selection, inEmassNums) {
         emassNums = inEmassNums.replaceAll(' ', '');
     }
     try {
+        let emassMap = new Map();
+        var collections = await reportUtils.getAllCollections(emassNums, emassMap);
+        if(!collections){
+            alert('No Colections found!');
+            return rows;
+        }
         switch (selection) {
             case '1':
                 console.log('Run 1. RMF SAP Report');
                 //let tokens = await myTokenUtils.getTokens(oidcBase, client_id, scope);
-                rows = await assetsByCollectionsReport.runAssetByCollectionReport(auth, emassNums);
+                rows = await assetsByCollectionsReport.runAssetByCollectionReport(auth, emassNums, collections, emassMap);
                 break;
             case '2':
                 console.log('Run 2. STIG Status per Collection');
-                rows = await statusReport.runStatusReport(auth, emassNums);
+                rows = await statusReport.runStatusReport(auth, emassNums, collections, emassMap);
                 break;
             case '4':
                 console.log('Run 3. Asset Asset Status per Collection');
-                rows = await assetCountReport.runAssetCountReport(auth, emassNums);
+                rows = await assetCountReport.runAssetCountReport(auth, emassNums, collections, emassMap);
                 break;
             case '5':
                 console.log('Run 4. Asset Collection per Primary Owner and System Admin');
-                rows = await saReportByAsset.runSAReportByAsset(auth, emassNums);
+                rows = await saReportByAsset.runSAReportByAsset(auth, emassNums, collections, emassMap);
                 break;
             case '7':
                 console.log('Run 5.  Asset Status per eMASS');
-                rows = await saReportByLabelAndEmass.runSAReportByLabelAndEmass(auth, emassNums);
+                rows = await saReportByLabelAndEmass.runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap);
                 break;
             case '8':
                 console.log('Run 6. STIG Deltas per Primary Owner and System Admin');
-                rows = await saReportWithMetricsAndVersions.runSAReportWithMetricsAndVersions(auth, emassNums);
+                rows = await saReportWithMetricsAndVersions.runSAReportWithMetricsAndVersions(auth, emassNums, collections, emassMap);
                 break;
             case '9':
                 // run STIG Benchmark by Results
                 console.log('Run 7. STIG Benchmark By Results');
-                rows = await stigBenchmarkByResults.runStigBenchmarkByResults(auth, emassNums);
+                rows = await stigBenchmarkByResults.runStigBenchmarkByResults(auth, emassNums, collections, emassMap);
                 break;
             case '10':
                 // run STIG Benchmark by Results
                 console.log('Run 8. Export Asset Collection per Primary Owner and System Admin');
-                rows = await exportSaReportsByAsset.runExportSAReportByAsset(auth, emassNums);
+                rows = await exportSaReportsByAsset.runExportSAReportByAsset(auth, emassNums, collections, emassMap);
                 break;
             case '11':
                 // run Checklist Over 356 days
                 console.log('Run 9. Checklist Over 365 Days');
-                rows = await checklistOver365Days.runChecklistOver365Days(auth, emassNums);
+                rows = await checklistOver365Days.runChecklistOver365Days(auth, emassNums, collections, emassMap);
                 break;
             default:
                 alert('You must provide a valid report option.');
