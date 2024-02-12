@@ -71,10 +71,49 @@ export default function ReportColumns({ index, item, selectedReport }) {
             return (
                 <tr key={index}>
                     <td>
+                        {item.datePulled}
+                    </td>
+                    <td>
+                        {item.code}
+                    </td>
+                    <td>
+                        {item.shortName}
+                    </td>
+                    <td>
                         {item.collectionName}
                     </td>
                     <td>
                         {item.asset}
+                    </td>
+                    <td>
+                        {item.deviceType}
+                    </td>
+                    <td>
+                        {item.primOwner}
+                    </td>
+                    <td>
+                        {item.sysAdmin}
+                    </td>
+                    <td>
+                        {item.rmfAction}
+                    </td>
+                    <td>
+                        {item.isso}
+                    </td>
+                    <td>
+                        {item.ccbSAActions}
+                    </td>
+                    <td>
+                        {item.other}
+                    </td>
+                    <td>
+                        {item.lastTouched}
+                    </td>
+                    <td>
+                        {item.stigs}
+                    </td>
+                    <td>
+                        {item.benchmarks}
                     </td>
                     <td>
                         {item.assessed}
@@ -149,6 +188,18 @@ export default function ReportColumns({ index, item, selectedReport }) {
                         {item.sysAdmin}
                     </td>
                     <td>
+                        {item.rmfAction}
+                    </td>
+                    <td>
+                        {item.isso}
+                    </td>
+                    <td>
+                        {item.ccbSAActions}
+                    </td>
+                    <td>
+                        {item.other}
+                    </td>
+                    <td>
                         {item.benchmarks}
                     </td>
                     <td>
@@ -171,7 +222,8 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                     <td>
                         {item.rejected}
-                    </td> <td>
+                    </td> 
+                    <td>
                         {item.cat3}
                     </td>
                     <td>
@@ -227,9 +279,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
             return (
                 <tr key={index}>
                     <td>
-                        {item.datePulled}
-                    </td>
-                    <td>
                         {item.code}
                     </td>
                     <td>
@@ -242,13 +291,25 @@ export default function ReportColumns({ index, item, selectedReport }) {
                         {item.asset}
                     </td>
                     <td>
+                        {item.deviceType}
+                    </td>
+                    <td>
                         {item.primOwner}
                     </td>
                     <td>
                         {item.sysAdmin}
+                    </td>                    
+                    <td>
+                        {item.rmfAction}
                     </td>
                     <td>
-                        {item.deviceType}
+                        {item.isso}
+                    </td>
+                    <td>
+                        {item.ccbSAActions}
+                    </td>
+                    <td>
+                        {item.other}
                     </td>
                     <td>
                         {item.lastTouched}
@@ -261,9 +322,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                     <td>
                         {item.submitted}
-                    </td>
-                    <td>
-                        {item.accepted}
                     </td>
                     <td>
                         {item.rejected}
@@ -286,6 +344,9 @@ export default function ReportColumns({ index, item, selectedReport }) {
                         {item.sysAdmin}
                     </td>
                     <td>
+                        {item.other}
+                    </td>
+                    <td>
                         {item.benchmark}
                     </td>
                     <td>
@@ -298,17 +359,11 @@ export default function ReportColumns({ index, item, selectedReport }) {
                         {item.result}
                     </td>
                     <td>
-                        {item.detail}
-                    </td>
-                    <td>
-                        {item.comment}
-                    </td>
-                    <td>
                         {item.modifiedDate}
                     </td>
                     <td>
                         {item.modifiedBy}
-                    </td> 
+                    </td>
                     <td>
                         {item.ruleId}
                     </td>
