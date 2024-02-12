@@ -83,6 +83,7 @@ function OssStigReports() {
   const [emassNums, setEmassNums] = useState('');
   const [showEmassNum, setShowEmassNums] = useState(false);
   const [showData, setShowData] = useState(false);
+  const [showNoDataFound, setShowNoDataFound] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isButtonDisabled, setButtonDisabled] = useState(false);
   const [disableNewReport, setDisableNewReport] = useState(false);
@@ -111,10 +112,6 @@ function OssStigReports() {
     window.location.reload();
   }
 
-  const enableShowData = () => {
-    setShowData(true);
-  }
-
   const handleSubmit = async (e) => {
 
 
@@ -139,9 +136,15 @@ function OssStigReports() {
     setDisableNewReport(true);
 
     await callAPI(auth, report, emassNums).then((data) => {
-      setApiResponse(data);
-      setFileData(data);
-      setShowData(true);
+
+      if (data.length > 0) {
+        setApiResponse(data);
+        setFileData(data);
+        setShowData(true);
+      }
+      else {
+        setShowNoDataFound(true);
+      }
     });
 
     setLoading(false);
@@ -289,6 +292,11 @@ function OssStigReports() {
             <button className="cancel-report-btn" type='reset' onClick={cancelReport} disabled={false}>Canecl Report</button>
             <button className="new-report-btn" type='reset' onClick={newReport} disabled={disableNewReport}>New Report</button>
             <br /><br />
+            {showNoDataFound && (
+              <div className="title-div">
+                <strong className="title">No data matching your selection found.</strong>
+              </div>
+            )}
             {showData && (
               <div id='tableDiv'>
                 <div id="csv-ink-div">
@@ -393,12 +401,6 @@ catch (e) {
   console.log(e.message);
 }*/
 
-}
-
-const RenderRow = (props) => {
-  return props.keys.map((key, index) => {
-    return <td key={props.data[key]}>{props.data[key]}</td>
-  })
 }
 
 export default OssStigReports;
