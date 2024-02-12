@@ -58,14 +58,6 @@ function ManageToken() {
       };
     }
   }, [auth, handleTokenExpiring]);
-
-  // formatting token to be shorter and easier to read
-  const formatToken = token => {
-    if (!token) return null
-    const start = token.substring(0, 8)
-    const end = token.substring(token.length - 8)
-    return `${start}...${end}`
-  }
   
   // error handling for if auth is null/undefined or userData doesn't exist
   if (!auth || !auth.userData) {

@@ -6,6 +6,9 @@ import { CSVLink } from 'react-csv';
 import ClipLoader from "react-spinners/ClipLoader";
 import * as GenerateReport from './reports/GenerateReport.js';
 import ReportColumns from './components/ReportColumns';
+import $ from 'jquery';
+import { getAuth } from './store/index.js';
+import axios from 'axios';
 
 
 
@@ -53,6 +56,7 @@ function OssStigReports() {
     // set the new auth value in the data store
     dispatch({ type: 'refresh', auth: auth });
 
+    //extendSession();
     //setAccessTokenId(auth.userData?.access_token);
   };
 
@@ -70,13 +74,6 @@ function OssStigReports() {
     }
   }, [auth, handleTokenExpiring]);
 
-  // formatting token to be shorter and easier to read
-  const formatToken = token => {
-    if (!token) return null
-    const start = token.substring(0, 8)
-    const end = token.substring(token.length - 8)
-    return `${start}...${end}`
-  }
 
   /*===============================================================*/
 
@@ -128,7 +125,7 @@ function OssStigReports() {
       return;
     }
 
-    if((report === '11' || report === '8') && emassNums === ''){
+    if ((report === '11' || report === '8') && emassNums === '') {
       alert('You must enter EMASS number(s)');
       return;
     }
@@ -329,6 +326,73 @@ async function callAPI(auth, report, emassNums) {
   //alert('calApi number of rows retruned: ' + rows.length);
 
   return rows;
+}
+
+async function extendSession() {
+
+  /* await fetch('"https://npc2ismsdev01.nren.navy.mil/stigmanossreports/robots.txt"',
+     { method: "HEAD" })
+     .then((response) => {
+       if (response.status === 200) {
+         console.log('success');
+       } else {
+         console.log('error');
+       }
+     })
+     .catch((error) => {
+       console.log('network error: ' + error);
+     });*/
+
+  /*fs.access('https://npc2ismsdev01.nren.navy.mil/stigmanossreports/robots.txt', fs.constants.F_OK, (err) => {
+    console.log(err ? 'File does not exist' : 'File exists');
+  });*/
+
+  try {
+
+    var storedAuth = getAuth();
+
+    //console.log(myUrl);
+    var accessToken = storedAuth.userData?.access_token;
+    var myUrl = 'https://npc2ismsdev01.nren.navy.mil/stigmanossreports/logo192.png';
+
+    var resp = await axios
+      .head(myUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+    /*var resp = await axios.get(myUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });*/
+
+    //alert('returning resp')
+    return resp;
+  }
+  catch (e) {
+    console.log(e.message);
+  }
+
+  /*await $.ajax({
+    type: 'HEAD',
+    url: 'https://npc2ismsdev01.nren.navy.mil/stigmanossreports/logo192.png',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    success: function () {
+      console.log('File exists');
+    },
+    error: function () {
+      console.log('File does not exist');
+    }
+  });
+}
+catch (e) {
+  console.log(e.message);
+}*/
+
 }
 
 const RenderRow = (props) => {
