@@ -6,9 +6,10 @@ import { CSVLink } from 'react-csv';
 import ClipLoader from "react-spinners/ClipLoader";
 import * as GenerateReport from './reports/GenerateReport.js';
 import ReportColumns from './components/ReportColumns';
-import $ from 'jquery';
+//import $ from 'jquery';
 import { getAuth } from './store/index.js';
 import axios from 'axios';
+import * as reportUtils from './reports/reportUtils.js';
 
 
 
@@ -56,7 +57,7 @@ function OssStigReports() {
     // set the new auth value in the data store
     dispatch({ type: 'refresh', auth: auth });
 
-    //extendSession();
+    extendSession();
     //setAccessTokenId(auth.userData?.access_token);
   };
 
@@ -79,6 +80,7 @@ function OssStigReports() {
 
   const [apiResponse, setApiResponse] = useState([]);
   const [fileData, setFileData] = useState('');
+  const [headers, setHeaders] = useState('');
   const [report, setReport] = useState('');
   const [emassNums, setEmassNums] = useState('');
   const [showEmassNum, setShowEmassNums] = useState(false);
@@ -122,7 +124,7 @@ function OssStigReports() {
       return;
     }
 
-    if ((report === '11' || report === '8') && emassNums === '') {
+    if ((report === '11' || report === '8' || report === '9') && emassNums === '') {
       alert('You must enter EMASS number(s)');
       return;
     }
@@ -137,9 +139,12 @@ function OssStigReports() {
 
     await callAPI(auth, report, emassNums).then((data) => {
 
-      if (data.length > 0) {
-        setApiResponse(data);
-        setFileData(data);
+      if (data && data.rows.length > 0) {
+        var mergedData = reportUtils.mergeHeadersAndData(data);
+        //setApiResponse(data.rows);
+        setApiResponse(mergedData);
+        setFileData(data.rows);
+        setHeaders(data.headers);
         setShowData(true);
       }
       else {
@@ -251,7 +256,7 @@ function OssStigReports() {
                 onChange={onRadioChange}
                 disabled={isButtonDisabled}
               />
-              <span>7. STIG Benchmark By Results</span>
+              <span>7. STIG Benchmark By Results (EMASS number(s) required)</span>
             </label>
             <br />
             <label>
@@ -302,6 +307,7 @@ function OssStigReports() {
                 <div id="csv-ink-div">
                   <CSVLink
                     data={fileData}
+                    headers={headers}
                     onClick={() => {
                       //window.location.reload();
                     }}
@@ -338,49 +344,80 @@ async function callAPI(auth, report, emassNums) {
 
 async function extendSession() {
 
-  /* await fetch('"https://npc2ismsdev01.nren.navy.mil/stigmanossreports/robots.txt"',
-     { method: "HEAD" })
-     .then((response) => {
-       if (response.status === 200) {
-         console.log('success');
-       } else {
-         console.log('error');
-       }
-     })
-     .catch((error) => {
-       console.log('network error: ' + error);
-     });*/
-
-  /*fs.access('https://npc2ismsdev01.nren.navy.mil/stigmanossreports/robots.txt', fs.constants.F_OK, (err) => {
-    console.log(err ? 'File does not exist' : 'File exists');
-  });*/
-
   try {
 
     var storedAuth = getAuth();
 
-    //console.log(myUrl);
+    // got error Access to XMLHttpRequest at 'https://npc2ismsdev01.nren.navy.mil/stigmanossreports/logo192.png' from origin 
+    // 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
+    // No 'Access-Control-Allow-Origin' header is present on the requested resource.
+    // Referrer Policy: strict-origin-when-cross-origin
     var accessToken = storedAuth.userData?.access_token;
     var myUrl = 'https://npc2ismsdev01.nren.navy.mil/stigmanossreports/logo192.png';
+    /*
+        var resp = await axios
+          .head(myUrl, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          });
+    
+        return resp;
+    */
 
-    var resp = await axios
-      .head(myUrl, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
+    /*
+        const headers = { 'Authorization': `Bearer ${accessToken}` }
+    
+        await fetch(myUrl,
+          {
+            method: "HEAD",
+            mode: 'cors',
+            Authorization: `Bearer ${accessToken}`
+          })
+          .then((response) => {
+            if (response.status === 200) {
+              console.log('success');
+            } else {
+              console.log('error');
+            }
+          })
+          .catch((error) => {
+            console.log('network error: ' + error);
+          });    
+    */
 
-    /*var resp = await axios.get(myUrl, {
+    var resp = await axios.get(myUrl, {
+      responseType: 'blob',
       headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Expires': '0',
         Authorization: `Bearer ${accessToken}`
       }
-    });*/
+    });
 
     //alert('returning resp')
     return resp;
+
+    // got a 404 return status
+    /*await $.ajax({
+      type: 'HEAD',
+      url: 'https://npc2ismsdev01.nren.navy.mil/stigmanossreports/logo192.png',
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      },
+      success: function () {
+        console.log('File exists');
+      },
+      error: function () {
+        console.log('File does not exist');
+      }
+    });*/
+
   }
   catch (e) {
     console.log(e.message);
+    console.log(e);
   }
 
   /*await $.ajax({
