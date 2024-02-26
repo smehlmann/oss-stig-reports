@@ -6,7 +6,7 @@ async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap
     try {
 
         //console.log(`runSAReportByLabelAndEmass Requesting STIG Manager Data for collection ` + collectionName);
-        var emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
+        //var emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var acronymMap = reportUtils.getEmassAcronymMap();
 
         var metrics = [];
@@ -26,12 +26,25 @@ async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap
             }
         ];*/
 
+        const headers = [
+            { label: 'eMASS Number', key: 'emass' },
+            { label: 'eMASS Acronym', key: 'acronym' },
+            { label: 'Asset', key: 'asset' },
+            { label: 'Assessed', key: 'assessed' },
+            { label: 'Submitted', key: 'submitted' },
+            { label: 'Accepted', key: 'accepted' },
+            { label: 'Rejected', key: 'rejected' },
+            { label: 'CAT3', key: 'cat3' },
+            { label: 'CAT2', key: 'cat2' },
+            { label: 'CAT1', key: 'cat1' }
+        ];
+
+        emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var iKey = 0;
         var iKeyend = emassMap.size;
         var myKeys = emassMap.keys();
         //console.log(myKeys);
 
-        var collectionNames = '';
         while (iKey < iKeyend) {
             var emassNum = myKeys.next().value;
             var myCollections = emassMap.get(emassNum);
@@ -57,7 +70,9 @@ async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap
             metricsData.length = 0;
         }
 
-        return rows;
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e);

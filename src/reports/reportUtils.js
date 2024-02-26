@@ -307,7 +307,7 @@ function getMetadata(labelMap, metrics) {
         other: ""
     }
 
-    if(metrics.name === 'NPK8VDIESX29'){
+    if (metrics.name === 'NPK8VDIESX29') {
         console.log('asset: ' + metrics.name);
     }
     const labels = metrics.labels;
@@ -347,6 +347,26 @@ function getMetadata(labelMap, metrics) {
     return collectionMetadata;
 }
 
+function mergeHeadersAndData(data) {
+
+    const headers = data.headers;
+    const rows = data.rows;
+    //var jsonData = {};
+    var jsonArray = [];
+    var myJson = {};
+    headers.forEach(function (column) {
+        var columnName = column.key;
+        var columnValue = column.label;
+        myJson[columnName] = columnValue;
+    });
+
+    jsonArray.push(myJson);
+    //const mergedData = rows.unshift(jsonArray);
+    const mergedData = jsonArray.concat(rows);
+
+    return mergedData;
+}
+
 export {
     getCollectionsByEmassNumber,
     getCurrentQuarter,
@@ -357,5 +377,6 @@ export {
     resultAbbreviation,
     filterCollectionsByEmassNumber,
     getAllCollections,
-    getMetadata
+    getMetadata,
+    mergeHeadersAndData
 };

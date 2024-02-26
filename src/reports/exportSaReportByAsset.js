@@ -35,6 +35,28 @@ async function runExportSAReportByAsset(auth, args, collections, emassMap) {
             }
         ];*/
 
+        const headers = [
+            { label: 'Date Pulled', key: 'datePulled' },
+            { label: 'Code', key: 'code' },
+            { label: 'Short Name', key: 'shortName' },
+            { label: 'Collection', key: 'collectionName' },
+            { label: 'Asset', key: 'asset' },
+            { label: 'Device-Asset', key: 'deviveType' },
+            { label: 'Primary Owner', key: 'primOwner' },
+            { label: 'Sys Admin', key: 'sysAdmin' },
+            { label: "RMF Action", key: 'rmfAction' },
+            { label: "ISSO", key: 'isso' },
+            { label: 'CCB_SA_Actions', key: 'ccbSAActions' },
+            { label: "OTHER", key: 'other' },
+            { label: 'Last Touched', key: 'lastTouched' },
+            { label: 'STIGs', key: 'stigs' },
+            { label: 'Assessed', key: 'assessed' },
+            { label: 'Submitted', key: 'submitted' },
+            { label: 'Accepted', key: 'accepted' },
+            { label: 'Rejected', key: 'rejected' }
+        ];
+
+
         var today = new Date();
         var todayStr = today.toISOString().substring(0, 10);
 
@@ -75,19 +97,22 @@ async function runExportSAReportByAsset(auth, args, collections, emassMap) {
 
             }
         }
+
+        //alert('returning report data');
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e)
     }
-
-    return rows;
 }
 
 function getRow(todayStr, collection, metrics, labelMap) {
 
     var collectionName = collection.name;
     var code = collection.metadata.Code;
-    if(!code){
+    if (!code) {
         code = '';
     }
     var shortName = collection.metadata.ShortName;
@@ -139,7 +164,7 @@ function getRow(todayStr, collection, metrics, labelMap) {
         avgRejected = temp.toFixed(2);
 
     }
-    
+
     var rowData = {
         datePulled: todayStr,
         code: code,

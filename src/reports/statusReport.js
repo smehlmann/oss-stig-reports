@@ -27,10 +27,24 @@ async function runStatusReport(auth, emassNums, collections, emassMap) {
 
         ];*/
 
+        const headers = [
+            { label: 'Collection', key: 'collectionName', },
+            { label: 'Sum of STIGs', key: 'sumOfStigs' },
+            { label: 'Sum of Checks', key: 'sumOfChecks' },
+            { label: 'Average of Assessed', key: 'avgAssessed' },
+            { label: 'Average of Submitted', key: 'avgSubmitted' },
+            { label: 'Average of Accepted', key: 'avgAccepted' },
+            { label: 'Average of Rejected', key: 'avgRejected' },
+            { label: 'Sum of CAT3', key: 'sumOfCat3' },
+            { label: 'Sum of CAT2', key: 'sumOfCat2' },
+            { label: 'Sum of CAT1', key: 'sumOfCat1' }
+
+        ];
+
         for (var iColl = 0; iColl < collections.length; iColl++) {
             var collectionName = collections[iColl].name;
 
-            if(!collectionName.startsWith('NP_C')) {
+            if (!collectionName.startsWith('NP_C')) {
                 continue;
             }
 
@@ -45,11 +59,13 @@ async function runStatusReport(auth, emassNums, collections, emassMap) {
             rows.push(myData);
         }
 
-        return rows;
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e);
-        throw(e);
+        throw (e);
     }
 }
 

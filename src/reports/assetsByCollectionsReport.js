@@ -22,6 +22,14 @@ async function runAssetByCollectionReport(auth, emassNums, collections, emassMap
             }
         ]*/
 
+        const headers = [
+            { label: 'EMASS', key: 'emass' },
+            { label: 'Collection', key: 'collection' },
+            { label: 'STIG Benchmark', key: 'benchmark' },
+            { label: 'Version', key: 'stigVersion' },
+            { label: 'Assets', key: 'assetNames' }
+        ]
+
         emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var iKey = 0;
         var iKeyend = emassMap.size;
@@ -55,7 +63,9 @@ async function runAssetByCollectionReport(auth, emassNums, collections, emassMap
         }
 
         //alert('returning report data');
-        return rows;
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e);

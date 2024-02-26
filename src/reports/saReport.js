@@ -41,25 +41,25 @@ async function runSAReport(auth, emassNums) {
 
         //let labelMap = new Map();
 
-        var rows = [
-            {
-                collectionName: 'Collections',
-                asset: 'Asset',
-                assessed: 'Assessed',
-                submitted: 'Submitted',
-                accepted: 'Accepted',
-                rejected: 'Rejected',
-                cat3: 'CAT3',
-                cat2: 'CAT2',
-                cat1: 'CAT1'
-            }
+        var rows = [];
+
+        const headers = [
+            { label: 'Collections', key: 'collectionName' },
+            { label: 'Asset', key: 'asset' },
+            { label: 'Assessed', key: 'assessed' },
+            { label: 'Submitted', key: 'submitted' },
+            { label: 'Accepted', key: 'accepted' },
+            { label: 'Rejected', key: 'rejected' },
+            { label: 'CAT3', key: 'cat3' },
+            { label: 'CAT2', key: 'cat2' },
+            { label: 'CAT1', key: 'cat1' }
         ];
 
 
         for (var i = 0; i < collections.length; i++) {
             var collectionName = collections[i].name;
-            
-            if(!collectionName.startsWith('NP_C')) {
+
+            if (!collectionName.startsWith('NP_C')) {
                 continue;
             }
 
@@ -70,11 +70,14 @@ async function runSAReport(auth, emassNums) {
             rows.push(myData);
         }
 
-        return rows;
+        //alert('returning report data');
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e);
-        throw(e);
+        throw (e);
     }
 }
 

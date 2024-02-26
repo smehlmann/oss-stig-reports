@@ -6,7 +6,7 @@ async function runAssetCountReport(auth, emassNums, collections, emassMap) {
 
         //console.log(`runStatusReport: Requesting STIG Manager Collections`);
         console.log(`runAssetCountReport: Requesting STIG Manager Data`);
-        
+
         var metrics = [];
         var rows = [];
         /*var rows = [
@@ -17,10 +17,16 @@ async function runAssetCountReport(auth, emassNums, collections, emassMap) {
 
         ];*/
 
+        const headers = [
+            { label: 'Collection', key: 'collectionName' },
+            { label: 'Asset Count', key: 'assetCount' }
+
+        ];
+
         for (var i = 0; i < collections.length; i++) {
             var collectionName = collections[i].name;
 
-            if(!collectionName.startsWith('NP_C')) {
+            if (!collectionName.startsWith('NP_C')) {
                 continue;
             }
 
@@ -29,13 +35,17 @@ async function runAssetCountReport(auth, emassNums, collections, emassMap) {
 
             var myData = getRow(collectionName, metrics);
             rows.push(myData);
-        } 
+        }
+
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e)
     }
 
-    return rows;
+
 }
 
 function getRow(collectionName, metrics) {

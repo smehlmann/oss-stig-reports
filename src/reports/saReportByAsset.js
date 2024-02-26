@@ -40,6 +40,31 @@ async function runSAReportByAsset(auth, emassNums, collections, emassMap) {
             }
         ];*/
 
+        const headers = [
+            { label: 'Date Pulled', key: 'datePulled' },
+            { label: 'Code', key: 'code' },
+            { label: 'Short Name', key: 'shortName' },
+            { label: 'Collection', key: 'collectionName' },
+            { label: 'Asset', key: 'asset' },
+            { label: 'Device-Asset', key: 'deviveType' },
+            { label: 'Primary Owner', key: 'primOwner' },
+            { label: 'Sys Admin', key: 'sysAdmin' },
+            { label: "RMF Action", key: 'rmfAction' },
+            { label: "ISSO", key: 'isso' },
+            { label: 'CCB_SA_Actions', key: 'ccbSAActions' },
+            { label: "Other", key: 'other' },
+            { label: 'Last Touched', key: 'lastTouched' },
+            { label: 'STIGs', key: 'stigs' },
+            { label: 'Benchmarks', key: 'benchmarks' },
+            { label: 'Assessed', key: 'assessed' },
+            { label: 'Submitted', key: 'submitted' },
+            { label: 'Accepted', key: 'accepted' },
+            { label: 'Rejected', key: 'rejected' },
+            { label: 'CAT3', key: 'cat3' },
+            { label: 'CAT2', key: 'cat2' },
+            { label: 'CAT1', key: 'cat1' }
+        ]
+
         var today = new Date();
         var todayStr = today.toISOString().substring(0, 10);
 
@@ -70,12 +95,15 @@ async function runSAReportByAsset(auth, emassNums, collections, emassMap) {
 
             }
         }
+
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
-        console.log(e)
+        console.log(e);
+        throw(e);
     }
-
-    return rows;
 }
 
 function getRow(todayStr, collection, metrics, labelMap) {
@@ -109,8 +137,8 @@ function getRow(todayStr, collection, metrics, labelMap) {
         lastTouched = touched.toString() + ' d';
     }
 
-    if(collectionName === 'NP_C10-UnclassCore_Servers_1761_Zone A' && (metrics.name === 'NPK8VDIESX29' || metrics.name === 'npa0aznessus01')){
-        
+    if (collectionName === 'NP_C10-UnclassCore_Servers_1761_Zone A' && (metrics.name === 'NPK8VDIESX29' || metrics.name === 'npa0aznessus01')) {
+
         console.log(collectionName + ' ' + metrics.name);
     }
 

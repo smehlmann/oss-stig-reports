@@ -42,6 +42,29 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums, collections, e
             }
         ];*/
 
+        const headers = [
+            { label: 'Collection', key: 'collectionName' },
+            { label: 'Asset', key: 'asset' },
+            { label: 'Device-Asset', key: 'deviveType' },
+            { label: 'Primary Owner', key: 'primOwner' },
+            { label: 'Sys Admin', key: 'sysAdmin' },
+            { label: "RMF Action", key: 'rmfAction' },
+            { label: "ISSO", key: 'isso' },
+            { label: 'CCB_SA_Actions', key: 'ccbSAActions' },
+            { label: "Orher", key: 'other' },
+            { label: 'STIG Benchmark', key: 'benchmarks' },
+            { label: 'Latest Revision', key: 'latestRev' },
+            { label: 'Previous Revision', key: 'prevRev' },
+            { label: 'Current Quarter STIG Version', key: 'quarterVer' },
+            { label: 'Assessed', key: 'assessed' },
+            { label: 'Submitted', key: 'submitted' },
+            { label: 'Accepted', key: 'accepted' },
+            { label: 'Rejected', key: 'rejected' },
+            { label: 'CAT3', key: 'cat3' },
+            { label: 'CAT2', key: 'cat2' },
+            { label: 'CAT1', key: 'cat1' }
+        ];
+
 
         for (var i = 0; i < collections.length; i++) {
             var collectionName = collections[i].name;
@@ -110,12 +133,14 @@ async function runSAReportWithMetricsAndVersions(auth, emassNums, collections, e
                 }
             }
         }
+
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e)
     }
-
-    return rows;
 }
 
 function getRow(collectionName,

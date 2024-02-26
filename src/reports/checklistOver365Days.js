@@ -34,6 +34,26 @@ async function runChecklistOver365Days(auth, emassNums, collections, emassMap) {
             }
         ];*/
 
+        var headers = [
+
+            { label: 'Collection', key: 'collectionName' },
+            { label: 'Asset', key: 'asset' },
+            { label: 'Primary Owner', key: 'primOwner' },
+            { label: 'Sys Admin', key: 'sysAdmin' },
+            { label: "Other", key: 'other' },
+            { label: 'STIG Benchmark', key: 'benchmark' },
+            { label: 'Revision', key: 'revision:' },
+            { label: 'Group ID', key: 'groupId' },
+            { label: 'Result', key: 'result' },
+            { label: 'Modified Date', key: 'modifiedDate' },
+            { label: 'Modified By', key: 'modifiedBy' },
+            { label: 'Rule', key: 'ruleId' },
+            { label: 'Status', key: 'status' },
+            { label: 'Status Date', key: 'statusDate' },
+            { label: 'Checked By', key: 'checkedBy' }
+
+        ];
+
 
         for (var i = 0; i < collections.length; i++) {
             var collectionName = collections[i].name;
@@ -107,7 +127,7 @@ async function runChecklistOver365Days(auth, emassNums, collections, emassMap) {
                         var status = reviews.data[iReviews].status.label;
                         var statusDate = reviews.data[iReviews].status.ts;
                         var checkedBy = reviews.data[iReviews].status.user.username;
-                        
+
                         var myData = getRow(collectionName,
                             assetName,
                             benchmarkId,
@@ -129,7 +149,9 @@ async function runChecklistOver365Days(auth, emassNums, collections, emassMap) {
             }// end collection metrics
         } // end collections
 
-        return rows;
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e);

@@ -4,7 +4,7 @@ import * as reportUtils from './reportUtils.js';
 async function runStigBenchmarkByResults(auth, args, collections, emassMap) {
 
     const currentQuarter = reportUtils.getCurrentQuarter();
-    
+
     var rows = [];
     /*var rows = [
         {
@@ -21,6 +21,19 @@ async function runStigBenchmarkByResults(auth, args, collections, emassMap) {
             status: 'Status'
         }
     ];*/
+    const headers = [
+        { label: 'Collection', key: 'collectionName' },
+        { label: 'STIG Benchmark', key: 'benchmark' },
+        { label: 'Latest Revision', key: 'latestRev' },
+        { label: 'Previous Revision', key: 'prevRev' },
+        { label: 'Current Quarter STIG Version', key: 'quarterVer' },
+        { label: 'Group ID', key: 'groupId' },
+        { label: 'Asset', key: 'asset' },
+        { label: 'Result', key: 'result' },
+        { label: 'Detail', key: 'detail' },
+        { label: 'Comment', key: 'comment' },
+        { label: 'Status', key: 'status' }
+    ];
 
     try {
         var startDate = new Date();
@@ -158,22 +171,19 @@ async function runStigBenchmarkByResults(auth, args, collections, emassMap) {
                     }//end for iStigs 
                 } // end if avgs
             } // end for iMetrics
-        }//end for each collection
+        }//end for each collection\
+
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
+
     } // end try
     catch (e) {
         console.log('Error in runStigBenchmarkByResults');
         console.log(e.message);
     }
 
-    var endDate = new Date();
-    var dateDiff = (endDate.getTime() - startDate.getTime()) / 1000;
-    var dateDiffInMinutes = dateDiff / 60;
-    var dateDiffInHours = dateDiffInMinutes / 60;
-    console.log('start: ' + startDate + ' end: ' + endDate + ' total time in seconds: ' + dateDiff);
-    console.log('total time in minutes: ' + dateDiffInMinutes);
-    console.log('total time in hours: ' + dateDiffInHours);
 
-    return rows;
 }
 
 function getRow(collectionName, benchmarkId, currentQuarter,

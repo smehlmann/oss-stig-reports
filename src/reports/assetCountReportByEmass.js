@@ -43,6 +43,11 @@ async function runAssetCountReportByEmass(auth, emassNums) {
 
         ];*/
 
+        const headers = [
+            { label: 'EMASS Number', key: 'emassNum' },
+            { label: 'Asset Count', key: 'assetCount' }
+        ];
+
         var iKey = 0;
         var iKeyend = emassMap.size;
         var myKeys = emassMap.keys();
@@ -72,7 +77,9 @@ async function runAssetCountReportByEmass(auth, emassNums) {
             metricsData.length = 0;
         }
 
-        return rows;
+        const returnData = { headers: headers, rows: rows }
+        //return rows;
+        return returnData;
     }
     catch (e) {
         console.log(e);
