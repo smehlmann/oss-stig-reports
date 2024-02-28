@@ -9,7 +9,7 @@ import * as saReportByLabelAndEmass from './saReportByLabelAndEmass.js';
 import * as checklistOver365Days from './checklistOver365Days.js';
 import * as reportUtils from './reportUtils.js';
 
-async function GenerateReport(auth, selection, inEmassNums) {
+async function GenerateReport(auth, selection, inEmassNums, numDaysOver) {
 
 
     var rows = [];
@@ -22,7 +22,7 @@ async function GenerateReport(auth, selection, inEmassNums) {
     try {
         let emassMap = new Map();
         var collections = await reportUtils.getAllCollections(emassNums, emassMap);
-        if(!collections){
+        if (!collections) {
             alert('No Colections found!');
             return rows;
         }
@@ -65,7 +65,8 @@ async function GenerateReport(auth, selection, inEmassNums) {
             case '11':
                 // run Checklist Over 356 days
                 console.log('Run 9. Checklist Over 365 Days');
-                rows = await checklistOver365Days.runChecklistOver365Days(auth, emassNums, collections, emassMap);
+                rows = await
+                    checklistOver365Days.runChecklistOver365Days(auth, emassNums, collections, emassMap, Number(numDaysOver));
                 break;
             default:
                 alert('You must provide a valid report option.');

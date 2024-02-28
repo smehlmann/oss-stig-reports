@@ -1,7 +1,7 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runChecklistOver365Days(auth, emassNums, collections, emassMap) {
+async function runChecklistOver365Days(auth, emassNums, collections, emassMap, numDaysOver) {
 
     try {
 
@@ -77,7 +77,7 @@ async function runChecklistOver365Days(auth, emassNums, collections, emassMap) {
                 var minTs = collection.data[iColl].metrics.minTs;
                 //var diffInDays = reportUtils.calcDiffInDays(minTs);
                 var diffInDays = reportUtils.calcDiffInDays(minTs);
-                if (diffInDays < 360) {
+                if (diffInDays < numDaysOver) {
                     continue;
                 }
 
@@ -119,7 +119,7 @@ async function runChecklistOver365Days(auth, emassNums, collections, emassMap) {
 
                         var modifiedDate = reviews.data[iReviews].ts;
                         diffInDays = reportUtils.calcDiffInDays(modifiedDate);
-                        if (diffInDays < 360) {
+                        if (diffInDays < numDaysOver) {
                             continue;
                         }
 
