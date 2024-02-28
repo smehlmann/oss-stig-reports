@@ -84,6 +84,8 @@ function OssStigReports() {
   const [report, setReport] = useState('');
   const [emassNums, setEmassNums] = useState('');
   const [showEmassNum, setShowEmassNums] = useState(false);
+  const [showNumDaysOver, setShowNumDaysOver] = useState(false);
+  const [numDaysOver, setNumDaysOver] = useState('360');
   const [showData, setShowData] = useState(false);
   const [showNoDataFound, setShowNoDataFound] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -97,11 +99,19 @@ function OssStigReports() {
   const onRadioChange = (e) => {
     setReport(e.target.value);
     setShowEmassNums(true);
+    if (e.target.value === '11') {
+      setShowNumDaysOver(true);
+    }
   }
 
   const updateEmass = (event) => {
     // 👇 Get input value from "event"
     setEmassNums(event.target.value);
+  };
+
+  const updateNumDaysOver = (event) => {
+    // 👇 Get input value from "event"
+    setNumDaysOver(event.target.value);
   };
 
   const newReport = (e) => {
@@ -117,6 +127,10 @@ function OssStigReports() {
   const handleSubmit = async (e) => {
 
 
+    if (isButtonDisabled === true) {
+      return;
+    }
+
     e.preventDefault();
 
     if (report === '') {
@@ -129,7 +143,8 @@ function OssStigReports() {
       return;
     }
 
-    if (isButtonDisabled === true) {
+    if (report === '11' && numDaysOver === '') {
+      alert('You must enter the number of days over.');
       return;
     }
 
@@ -137,7 +152,7 @@ function OssStigReports() {
     setButtonDisabled(true);
     setDisableNewReport(true);
 
-    await callAPI(auth, report, emassNums).then((data) => {
+    await callAPI(auth, report, emassNums, numDaysOver).then((data) => {
 
       if (data && data.rows.length > 0) {
         var mergedData = reportUtils.mergeHeadersAndData(data);
@@ -280,14 +295,28 @@ function OssStigReports() {
               />
               <span>9. Checklist Over 356 Days (EMASS number(s) required)</span>
             </label>
-            <br /><br />{showEmassNum && (
+            <br /><br />
+            {showEmassNum && (
               <div id='emassDiv'>
-                <label htmlFor="emassNumsText">Optional except for reports 6 and 9: Enter EMASS Number(s) separated by commas: </label>
+                <label htmlFor="emassNumsText">Optional for reports 1-5 and 8. Required for reports 6, 7 and 9.<br/> Enter EMASS Number(s) separated by commas: </label>
                 <input
                   id='emassNumsText'
                   type='text'
                   value={emassNums}
                   onChange={updateEmass}
+                  disabled={isButtonDisabled}
+                />
+              </div>
+            )}
+            <br />
+            {showNumDaysOver && (
+              <div>
+                <label htmlFor="emassNumsText">Enter number of days over: </label>
+                <input
+                  id='numDaysText'
+                  type='number'
+                  value={numDaysOver}
+                  onChange={updateNumDaysOver}
                   disabled={isButtonDisabled}
                 />
               </div>
@@ -332,11 +361,11 @@ function OssStigReports() {
   }
 }
 
-async function callAPI(auth, report, emassNums) {
+async function callAPI(auth, report, emassNums, numDaysOver) {
 
   //alert('callAPI report: ' + report);
 
-  var rows = await GenerateReport.GenerateReport(auth, report, emassNums);
+  var rows = await GenerateReport.GenerateReport(auth, report, emassNums, numDaysOver);
   //alert('calApi number of rows retruned: ' + rows.length);
 
   return rows;

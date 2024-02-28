@@ -121,6 +121,11 @@ div.MyApp {
   height: 30px;
 }
 
+#numDaysText {
+  width: 100px;
+  height: 30px;
+}
+
 @media (min-width: 768px) {
   .submit-btn {
     padding: 14px 22px;
