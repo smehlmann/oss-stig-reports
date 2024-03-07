@@ -64,7 +64,7 @@ async function runAssetCountReportByEmass(auth, emassNums) {
                     continue;
                 }
 
-                metrics = await reportGetters.getCollectionMertics(auth, myCollections[i].collectionId);
+                metrics = await reportGetters.(auth, myCollections[i].collectionId);
                 metricsData.push(metrics);
 
                 //var myData = getRow(collectionName, metrics);
