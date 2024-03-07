@@ -11,20 +11,6 @@ async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap
 
         var metrics = [];
         var rows = [];
-        /*var rows = [
-            {
-                emass: 'eMASS Number',
-                acronym: 'eMASS Acronym',
-                asset: 'Asset',
-                assessed: 'Assessed',
-                submitted: 'Submitted',
-                accepted: 'Accepted',
-                rejected: 'Rejected',
-                cat3: 'CAT3',
-                cat2: 'CAT2',
-                cat1: 'CAT1'
-            }
-        ];*/
 
         const headers = [
             { label: 'eMASS Number', key: 'emass' },
@@ -55,8 +41,8 @@ async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap
                 var containsStr = myCollections[i].name.includes('Database/Web');
 
                 if (!containsStr) {
-                    metrics = await reportGetters.getCollectionMerticsAggreatedByLabel(
-                        auth, myCollections[i].collectionId);
+                    //metrics = await reportGetters.getCollectionMerticsAggreatedByLabel(
+                    metrics = await reportGetters.getCollectionMertics(auth, myCollections[i].collectionId);
                     //console.log(metrics);
                     metricsData.push(metrics);
                 }
@@ -94,23 +80,19 @@ function getRow(emassNum, metrics, acronymMap) {
 
 
     for (var i = 0; i < metrics.length; i++) {
-        var myMetricsData = metrics[i].data;
-        //console.log(myMetricsData);
-        var myMetrics;
-        for (var j = 0; j < myMetricsData.length; j++) {
-            myMetrics = myMetricsData[j].metrics;
-            //console.log(myMetrics);
 
-            numAssessments += myMetrics.assessments;
-            numAssessed += myMetrics.assessed;
-            numSubmitted += myMetrics.statuses.submitted;
-            numAccepted += myMetrics.statuses.accepted;
-            numRejected += myMetrics.statuses.rejected;
-            numAssets += myMetricsData[j].assets;
-            sumOfCat3 += myMetrics.findings.low;
-            sumOfCat2 += myMetrics.findings.medium;
-            sumOfCat1 += myMetrics.findings.high;
-        }
+        var myMetricsData = metrics[i].data;
+        numAssets += myMetricsData.assets;
+
+        var myMetrics = myMetricsData.metrics;
+        numAssessments += myMetrics.assessments;
+        numAssessed += myMetrics.assessed;
+        numSubmitted += myMetrics.statuses.submitted.total;
+        numAccepted += myMetrics.statuses.accepted.total;
+        numRejected += myMetrics.statuses.rejected.total;
+        sumOfCat3 += myMetrics.findings.low;
+        sumOfCat2 += myMetrics.findings.medium;
+        sumOfCat1 += myMetrics.findings.high;
     }
 
     var avgAssessed = 0;
