@@ -211,34 +211,12 @@ function OssStigReports() {
             <label>
               <input
                 type="radio"
-                value="2"
-                checked={report === "2"}
-                onChange={onRadioChange}
-                disabled={isButtonDisabled}
-              />
-              <span>2. STIG Status per Collection</span>
-            </label>
-            <br />
-            <label>
-              <input
-                type="radio"
-                value="4"
-                checked={report === "4"}
-                onChange={onRadioChange}
-                disabled={isButtonDisabled}
-              />
-              <span>3. Asset Status per Collection</span>
-            </label>
-            <br />
-            <label>
-              <input
-                type="radio"
                 value="5"
                 checked={report === "5"}
                 onChange={onRadioChange}
                 disabled={isButtonDisabled}
               />
-              <span>4. Asset Collection per Primary Owner and System Admin</span>
+              <span>2. Asset Collection per Primary Owner and System Admin</span>
             </label>
             <br />
             <label>
@@ -249,7 +227,7 @@ function OssStigReports() {
                 onChange={onRadioChange}
                 disabled={isButtonDisabled}
               />
-              <span>5. Asset Status per eMASS</span>
+              <span>3. Asset Status per eMASS</span>
             </label>
             <br />
             <label>
@@ -260,7 +238,7 @@ function OssStigReports() {
                 onChange={onRadioChange}
                 disabled={isButtonDisabled}
               />
-              <span>6. STIG Deltas per Primary Owner and System Admin (EMASS number(s) required)</span>
+              <span>4. STIG Deltas per Primary Owner and System Admin (EMASS number(s) required)</span>
             </label>
             <br />
             <label>
@@ -271,18 +249,7 @@ function OssStigReports() {
                 onChange={onRadioChange}
                 disabled={isButtonDisabled}
               />
-              <span>7. STIG Benchmark By Results (EMASS number(s) required)</span>
-            </label>
-            <br />
-            <label>
-              <input
-                type="radio"
-                value="10"
-                checked={report === "10"}
-                onChange={onRadioChange}
-                disabled={isButtonDisabled}
-              />
-              <span>8. Export Asset Collection per Primary Owner and System Admin</span>
+              <span>5. STIG Benchmark By Results (EMASS number(s) required)</span>
             </label>
             <br />
             <label>
@@ -293,12 +260,12 @@ function OssStigReports() {
                 onChange={onRadioChange}
                 disabled={isButtonDisabled}
               />
-              <span>9. Checklist Over 356 Days (EMASS number(s) required)</span>
+              <span>6. Checklist Over 356 Days (EMASS number(s) required)</span>
             </label>
             <br /><br />
             {showEmassNum && (
               <div id='emassDiv'>
-                <label htmlFor="emassNumsText">Optional for reports 1-5 and 8. Required for reports 6, 7 and 9.<br/> Enter EMASS Number(s) separated by commas: </label>
+                <label htmlFor="emassNumsText">Optional for reports 1-3. Required for reports 4-6.<br/> Enter EMASS Number(s) separated by commas: </label>
                 <input
                   id='emassNumsText'
                   type='text'
