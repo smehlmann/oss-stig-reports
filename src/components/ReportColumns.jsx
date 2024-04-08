@@ -1,5 +1,9 @@
 export default function ReportColumns({ index, item, selectedReport }) {
 
+    console.log('index: ' + index + ' selectedReport: ' + selectedReport);
+    console.log(' item: ' + item);
+
+
     switch (selectedReport) {
         case '1':
             return (
@@ -83,7 +87,13 @@ export default function ReportColumns({ index, item, selectedReport }) {
                         {item.collectionName}
                     </td>
                     <td>
+                        {item.emass}
+                    </td>
+                    <td>
                         {item.asset}
+                    </td>
+                    <td>
+                        {item.nccm}
                     </td>
                     <td>
                         {item.deviceType}
@@ -222,7 +232,7 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                     <td>
                         {item.rejected}
-                    </td> 
+                    </td>
                     <td>
                         {item.cat3}
                     </td>
@@ -237,9 +247,6 @@ export default function ReportColumns({ index, item, selectedReport }) {
         case '9':
             return (
                 <tr key={index}>
-                    <td>
-                        {item.emass}
-                    </td>
                     <td>
                         {item.collectionName}
                     </td>
@@ -262,7 +269,7 @@ export default function ReportColumns({ index, item, selectedReport }) {
                         {item.asset}
                     </td>
                     <td>
-                        {item.Result}
+                        {item.result}
                     </td>
                     <td>
                         {item.detail}
@@ -298,7 +305,7 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                     <td>
                         {item.sysAdmin}
-                    </td>                    
+                    </td>
                     <td>
                         {item.rmfAction}
                     </td>
@@ -375,6 +382,68 @@ export default function ReportColumns({ index, item, selectedReport }) {
                     </td>
                     <td>
                         {item.checkedBy}
+                    </td>
+                </tr>
+            );
+        case '12':
+            return (
+                <tr key={index}>
+                    <td>
+                        {item.collectionName}
+                    </td>
+                    <td>
+                        {item.asset}
+                    </td>
+                    <td>
+                        {item.primOwner}
+                    </td>
+                    <td>
+                        {item.sysAdmin}
+                    </td>
+                    <td>
+                        {item.rmfAction}
+                    </td>
+                    <td>
+                        {item.isso}
+                    </td>
+                    <td>
+                        {item.ccbSAActions}
+                    </td>
+                    <td>
+                        {item.other}
+                    </td>
+                    <td>
+                        {item.benchmarks}
+                    </td>
+                    <td>
+                        {item.latestRev}
+                    </td>
+                    <td>
+                        {item.prevRev}
+                    </td>
+                    <td>
+                        {item.quarterVer}
+                    </td>
+                    <td>
+                        {item.assessed}
+                    </td>
+                    <td>
+                        {item.submitted}
+                    </td>
+                    <td>
+                        {item.accepted}
+                    </td>
+                    <td>
+                        {item.rejected}
+                    </td>
+                    <td>
+                        {item.cat3}
+                    </td>
+                    <td>
+                        {item.cat2}
+                    </td>
+                    <td>
+                        {item.cat1}
                     </td>
                 </tr>
             );
