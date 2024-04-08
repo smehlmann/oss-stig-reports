@@ -98,7 +98,9 @@ function OssStigReports() {
   // this function will be called when a radio button is checked
   const onRadioChange = (e) => {
     setReport(e.target.value);
-    setShowEmassNums(true);
+    if (e.target.value !== '12') {
+      setShowEmassNums(true);
+    }
     if (e.target.value === '11') {
       setShowNumDaysOver(true);
     }
@@ -262,10 +264,21 @@ function OssStigReports() {
               />
               <span>6. Checklist Over 356 Days (EMASS number(s) required)</span>
             </label>
+            <br />
+            <label>
+              <input
+                type="radio"
+                value="12"
+                checked={report === "12"}
+                onChange={onRadioChange}
+                disabled={isButtonDisabled}
+              />
+              <span>7. STIG Deltas for Unidentified NCCM Packages</span>
+            </label>
             <br /><br />
             {showEmassNum && (
               <div id='emassDiv'>
-                <label htmlFor="emassNumsText">Optional for reports 1-3. Required for reports 4-6.<br/> Enter EMASS Number(s) separated by commas: </label>
+                <label htmlFor="emassNumsText">Optional for reports 1-3. Required for reports 4-6.<br /> Enter EMASS Number(s) separated by commas: </label>
                 <input
                   id='emassNumsText'
                   type='text'
