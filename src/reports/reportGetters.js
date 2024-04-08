@@ -1,5 +1,6 @@
 //import got from 'got';
 import axios from 'axios'
+import * as reportUtils from './reportUtils.js';
 import { useAuth } from 'oidc-react';
 import { getAuth } from '../store/index.js';
 
@@ -202,8 +203,22 @@ async function getStigsByAsset(auth, assetId) {
 }
 
 async function getAssets(auth, collectionId, benchmarkId) {
-  //console.log('inGetStigs')
+  //console.log('getAssets')
   var myUrl = apiBase + '/collections/' + collectionId + '/stigs/' + benchmarkId + '/assets'
+  var assets = getMetricsData(auth, myUrl)
+  return assets
+}
+
+async function getAssetMetricsSummary(auth, collectionId) {
+  //console.log('getAssetMetricsSummary')
+  var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary/asset?format=json'
+  var assets = getMetricsData(auth, myUrl)
+  return assets
+}
+
+async function getAssetMetricsSummaryByAssetId(auth, collectionId, assetId) {
+  //console.log('getAssetMetricsSummary')
+  var myUrl = apiBase + '/collections/' + collectionId + '/metrics/summary?assetId=' + assetId + '&format=json';
   var assets = getMetricsData(auth, myUrl)
   return assets
 }
@@ -233,6 +248,16 @@ async function getAssetsByLabel(auth, collectionId, labelId) {
 async function getAssetsByName(auth, collectionId, assetName) {
 
   var myUrl = apiBase + '/assets?collectionId=' + collectionId + '&name=' + assetName + '&name-match=exact';
+  //console.log('getAssetsByName: ' + myUrl);
+  var asset = await getMetricsData(auth, myUrl);
+  //console.log('getAssetsByName: ' + asset);
+  return asset;
+}
+
+
+async function getAssetsById(auth, assetId) {
+
+  var myUrl = apiBase + '/assets/' + assetId;
   //console.log('getAssetsByName: ' + myUrl);
   var asset = await getMetricsData(auth, myUrl);
   //console.log('getAssetsByName: ' + asset);
@@ -313,8 +338,8 @@ async function getCollectionMerticsByCollectionAssetAndLabel(auth, collectionId,
 // Return metrics for the specified Collection by collection ID, and asset ID
 async function getCollectionMerticsByCollectionAndAsset(auth, collectionId, assetId) {
 
-  //collections/1/metrics/detail/stig?benchmarkId=Network_WLAN_AP-NIPR_Mgmt_STIG&assetId=1&labelId=1&format=json
-  var myUrl = apiBase + '/collections/' + collectionId + '/metrics/detail?assetId=' + assetId + '&format=json';
+  var myUrl = apiBase + '/collections/' + collectionId + '/metrics/detail?assetId='
+    + assetId + '&format=json';
 
   var metrics = getMetricsData(auth, myUrl);
   return metrics;
@@ -747,9 +772,82 @@ async function mapAssetToLabel(labelName, labelId, assetId, labelAssetMap, colle
 
 }
 
+async function getAssetEmassMap(auth, collectionId, emassFilter) {
+
+  var assetEmassMap = new Map();
+  const assets = await getAssetsByCollection(auth, collectionId);
+  if (assets) {
+    for (var i = 0; i < assets.data.length; i++) {
+      var emassNum = '';
+      if (assets.data[i] && assets.data[i].metadata && assets.data[i].metadata.eMass) {
+
+        emassNum = assets.data[i].metadata.eMass;
+        if (emassFilter) {
+          if (emassNum && emassNum === emassFilter) {
+            assetEmassMap.set(assets.data[i].name, emassNum);
+          }
+        }
+        else {
+          assetEmassMap.set(assets.data[i].name, emassFilter);
+        }
+      }
+      else {
+        assetEmassMap.set(assets.data[i].name, emassFilter);
+      }
+    }
+  }
+
+  return assetEmassMap;
+}
+
+async function getAllCollections(emassNums, emassMap) {
+
+  var storedAuth = getAuth();
+  var collections = [];
+  var tempCollections = [];
+
+  tempCollections = await getCollections(storedAuth);
+  if (!emassNums || emassNums.length === 0) {
+    //collections = tempCollections;
+    for (var j = 0; j < tempCollections.data.length; j++) {
+      collections.push(tempCollections.data[j])
+    }
+  }
+  else {
+    emassMap = reportUtils.getCollectionsByEmassNumber(tempCollections, emassNums);
+    var emassArray = emassNums.split(',');
+    for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
+      console.log('emassArray[mapIdx]: ' + emassArray[mapIdx]);
+      var mappedCollection = emassMap.get(emassArray[mapIdx]);
+
+      if (mappedCollection) {
+        collections = collections.concat(mappedCollection);
+      }
+    }
+  }
+
+  return collections;
+}
+
+async function getAssetMetadata(auth, assetId) {
+
+  var myUrl = apiBase + '/assets/' + assetId + '/metadata';
+  //console.log(myUrl);
+  try {
+    var assetMeatdata = await getMetricsData(auth, myUrl);
+    return assetMeatdata;
+  }
+  catch (e) {
+    console.log('getReview error: ' + e);
+    console.log(myUrl);
+  }
+}
+
+
 export {
   getCollections,
   getCollectionByName,
+  getAllCollections,
   getStigs,
   getStigById,
   getStigsByAsset,
@@ -757,6 +855,8 @@ export {
   getAssetsByLabel,
   getAssetsByCollection,
   getAssetsByName,
+  getAssetMetricsSummary,
+  getAssetMetricsSummaryByAssetId,
   getCollectionMerticsAggreatedByLabel,
   getCollectionMerticsAggreatedByAsset,
   getFindingsByCollectionAndAsset,
@@ -782,5 +882,8 @@ export {
   getReviewByCollectionAndAsset,
   getAllReviewsByCollectionAndAsset,
   getReviewByGroupId,
-  getSubmittedReviewsByCollectionAndAsset
+  getSubmittedReviewsByCollectionAndAsset,
+  getAssetsById,
+  getAssetEmassMap,
+  getAssetMetadata
 };

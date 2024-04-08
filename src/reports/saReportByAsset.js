@@ -1,7 +1,7 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runSAReportByAsset(auth, emassNums, collections, emassMap) {
+async function runSAReportByAsset(auth, inEmassNums, emassMap) {
 
     try {
 
@@ -13,40 +13,15 @@ async function runSAReportByAsset(auth, emassNums, collections, emassMap) {
         let labelMap = new Map();
 
         var rows = [];
-        /*var rows = [
-            {
-                datePulled: 'Date Pulled',
-                code: 'Code',
-                shortName: 'Short Name',
-                collectionName: 'Collection',
-                asset: 'Asset',
-                deviveType: 'Device-Asset',
-                primOwner: 'Primary Owner',
-                sysAdmin: 'Sys Admin',                
-                rmfAction: "RMF Action",
-                isso: "ISSO",
-                ccbSAActions: 'CCB_SA_Actions',
-                other: "OTHER",
-                lastTouched: 'Last Touched',
-                stigs: 'STIGs',
-                benchmarks: 'Benchmarks',
-                assessed: 'Assessed',
-                submitted: 'Submitted',
-                accepted: 'Accepted',
-                rejected: 'Rejected',
-                cat3: 'CAT3',
-                cat2: 'CAT2',
-                cat1: 'CAT1'
-            }
-        ];*/
-
         const headers = [
             { label: 'Date Pulled', key: 'datePulled' },
             { label: 'Code', key: 'code' },
             { label: 'Short Name', key: 'shortName' },
             { label: 'Collection', key: 'collectionName' },
+            { label: 'eMASS', key: 'emass' },
             { label: 'Asset', key: 'asset' },
-            { label: 'Device-Asset', key: 'deviveType' },
+            { label: 'NCCM', key: 'nccm' },
+            { label: 'Device-Asset', key: 'deviceType' },
             { label: 'Primary Owner', key: 'primOwner' },
             { label: 'Sys Admin', key: 'sysAdmin' },
             { label: "RMF Action", key: 'rmfAction' },
@@ -68,31 +43,69 @@ async function runSAReportByAsset(auth, emassNums, collections, emassMap) {
         var today = new Date();
         var todayStr = today.toISOString().substring(0, 10);
 
-        for (var i = 0; i < collections.length; i++) {
-            var collectionName = collections[i].name;
-            console.log('runSAReportByAsset collectionName: ' + collectionName);
+        const emassKeysArray = Array.from(emassMap.keys());
+        for (var iEmass = 0; iEmass < emassKeysArray.length; iEmass++) {
+            var collections = emassMap.get(emassKeysArray[iEmass]);
+            var emassNum = emassKeysArray[iEmass];
+            var assetEmassMap;
 
-            if (!collectionName.startsWith('NP_C')) {
-                continue;
-            }
+            for (var i = 0; i < collections.length; i++) {
+                var collectionName = collections[i].name;
+                console.log('runSAReportByAsset collectionName: ' + collectionName);
+
+                if (!collectionName.startsWith('NP_C')) {
+                    continue;
+                }
+
+                //assetEmassMap = await reportGetters.getAssetEmassMap(auth, collections[i].collectionId, emassNum);
+                //get the collection assets
+                var  assets = await reportGetters.getAssetsByCollection(auth, collections[i].collectionId);
+                if (!assets || assets.data.length === 0) {
+                    continue;
+                }
+
+                assetEmassMap = await reportUtils.getAssetEmassMapByAssets(emassNum, assets, inEmassNums, 0);
+                if (!assetEmassMap || assetEmassMap.size === 0) {
+                    continue;
+                }
 
 
-            //console.log(collectionName);
-            labelMap.clear();
-            labels.length = 0;
+                //console.log(collectionName);
+                labelMap.clear();
+                labels.length = 0;
 
-            labels = await reportGetters.getLabelsByCollection(auth, collections[i].collectionId);
-            for (var x = 0; x < labels.data.length; x++) {
-                labelMap.set(labels.data[x].labelId, labels.data[x].description);
-            }
+                labels = await reportGetters.getLabelsByCollection(auth, collections[i].collectionId);
+                for (var x = 0; x < labels.data.length; x++) {
+                    labelMap.set(labels.data[x].labelId, labels.data[x].description);
+                }
 
-            metrics = await reportGetters.getCollectionMerticsAggreatedByAsset(auth, collections[i].collectionId);
-            //console.log(metrics);
+                metrics = await reportGetters.getCollectionMerticsAggreatedByAsset(auth, collections[i].collectionId);
+                //console.log(metrics);
 
-            for (var jMetrics = 0; jMetrics < metrics.data.length; jMetrics++) {
-                var myData = getRow(todayStr, collections[i], metrics.data[jMetrics], labelMap);
-                rows.push(myData);
+                if (!metrics) {
+                    continue;
+                }
 
+                for (var jMetrics = 0; jMetrics < metrics.data.length; jMetrics++) {
+
+                    if (metrics.data[jMetrics].name === '1301-SHLT') {
+                        console.log('assetName: ' + metrics.data[jMetrics].name);
+                    }
+
+                    
+                    var assetIdx = assets.data.findIndex(t=>t.name === metrics.data[jMetrics].name);
+
+                    /*var assets = await
+                        reportGetters.getAssetsByName(auth, collections[i].collectionId, encodedName);*/
+
+                    var myData =
+                        getRow(todayStr, collections[i], metrics.data[jMetrics], labelMap, assets.data[assetIdx],
+                            emassNum, assetEmassMap);
+                    if (myData) {
+                        rows.push(myData);
+                    }
+
+                }
             }
         }
 
@@ -102,15 +115,60 @@ async function runSAReportByAsset(auth, emassNums, collections, emassMap) {
     }
     catch (e) {
         console.log(e);
-        throw(e);
+        throw (e);
     }
 }
 
-function getRow(todayStr, collection, metrics, labelMap) {
+function getRow(todayStr, collection, metrics, labelMap, asset, emassNum, assetEmassMap) {
+
+    var assetMetadata = '';
+    var eMass = "";
+
+    // if an eMass has not been specified by the user, use the collection emass
+    /*eMass = collection.metadata.eMASS;
+    if (metadata) {
+        if (metadata.assetMetadata) {
+            assetMetadata = metadata.assetMetadata;
+        }
+        if (metadata.eMass && metadata.eMass === emassNum) {
+            eMass = metadata.eMass;
+        }
+    }
+
+    if (!eMass) {
+        return null;
+    }*/
+
+    const metadata = asset.metadata;
+    //var assetName = asset.name;
+    var assetName = metrics.name;
+    var assetEmass = assetEmassMap.get(assetName);
+    if(!assetEmass){
+        return null;
+    }
+
+    if(assetName === 'c25-infra-02'){
+        console.log('assetName: ' + assetName);
+    }
+    if(metrics.name === 'c25-infra-02'){
+        console.log('assetName: ' + assetName);
+    }
+
+    if (assetEmass && assetEmass === emassNum) {
+        eMass = assetEmass;
+    }
+    if (metadata) {
+        if (metadata.assetMetadata) {
+            assetMetadata = metadata.assetMetadata;
+        }
+    }
+
+    eMass = eMass.replaceAll(',', ';');
 
     var collectionName = collection.name;
     var code = collection.metadata.Code;
     var shortName = collection.metadata.ShortName;
+
 
     const numAssessments = metrics.metrics.assessments;
     const numAssessed = metrics.metrics.assessed;
@@ -176,8 +234,10 @@ function getRow(todayStr, collection, metrics, labelMap) {
         code: code,
         shortName: shortName,
         collectionName: collectionName,
+        emass: eMass,
         asset: metrics.name,
-        deviveType: collectionMetadata.device,
+        nccm: assetMetadata,
+        deviceType: collectionMetadata.device,
         primOwner: collectionMetadata.primOwner,
         sysAdmin: collectionMetadata.sysAdmin,
         rmfAction: collectionMetadata.rmfAction,
@@ -197,7 +257,6 @@ function getRow(todayStr, collection, metrics, labelMap) {
     }
 
     return rowData;
-
 }
 
 export { runSAReportByAsset };

@@ -1,31 +1,28 @@
-import { getAuth } from '../store/index.js';
-import * as reportGetters from './reportGetters.js';
-
 var quarters = [
     {
         name: 'Q1',
-        startDate: '10/1/2022',
-        endDate: '12/31/2022'
+        startDate: '10/1/2023',
+        endDate: '12/31/2023'
     },
     {
         name: 'Q2',
-        startDate: '1/1/2023',
-        endDate: '3/31/2023'
+        startDate: '1/1/2024',
+        endDate: '3/31/2024'
     },
     {
         name: 'Q3',
-        startDate: '4/1/2023',
-        endDate: '6/30/2023'
+        startDate: '4/1/2024',
+        endDate: '6/30/2024'
     },
     {
         name: 'Q4',
-        startDate: '7/1/2023',
-        endDate: '9/30/2023'
+        startDate: '7/1/2024',
+        endDate: '9/30/2024'
     }
 ];
 
 
-function getCollectionsByEmassNumber(collections) {
+function getCollectionsByEmassNumber(collections, emassNumsFilter) {
 
     let emassMap = new Map();
 
@@ -33,19 +30,55 @@ function getCollectionsByEmassNumber(collections) {
     console.log(collections);
 
     try {
-        for (var x = 0; x < collections.data.length; x++) {
 
-            var emassNum = collections.data[x].metadata.eMASS;
-            if (emassNum) {
+        var emassArray = emassNumsFilter.split(',');
 
-                var myVal = emassMap.get(emassNum);
-                if (myVal) {
-                    myVal.push(collections.data[x]);
-                    emassMap.set(emassNum, myVal);
+        if (emassNumsFilter) {
+
+            for (var x = 0; x < collections.data.length; x++) {
+
+                var collectionEmass = collections.data[x].metadata.eMASS;
+                if (collectionEmass) {
+                    var collectioEmassArray = collectionEmass.split(',');
+
+                    for (var iCol = 0; iCol < collectioEmassArray.length; iCol++) {
+                        for (var j = 0; j < emassArray.length; j++) {
+                            if (collectioEmassArray[iCol] === emassArray[j]) {
+                                var myCollections = emassMap.get(emassArray[j]);
+                                if (myCollections) {
+                                    myCollections.push(collections.data[x]);
+                                    emassMap.set(emassArray[j], myCollections);
+                                }
+                                else {
+                                    myCollections = [collections.data[x]];
+                                    emassMap.set(emassArray[j], myCollections);
+                                }
+                            }
+                        }
+                    }
                 }
-                else {
-                    myVal = [collections.data[x]];
-                    emassMap.set(emassNum, myVal);
+            }
+        }
+        else {
+            for (var x = 0; x < collections.data.length; x++) {
+
+                var collectionEmass = collections.data[x].metadata.eMASS;
+                if (collectionEmass) {
+                    var collectioEmassArray = collectionEmass.split(',');
+
+                    for (var iCol = 0; iCol < collectioEmassArray.length; iCol++) {
+
+                        var myCollections = emassMap.get(collectioEmassArray[iCol]);
+                        if (myCollections) {
+                            myCollections.push(collections.data[x]);
+                            emassMap.set(collectioEmassArray[iCol], myCollections);
+                        }
+                        else {
+                            myCollections = [collections.data[x]];
+                            emassMap.set(collectioEmassArray[iCol], myCollections);
+                        }
+
+                    }
                 }
             }
         }
@@ -71,9 +104,9 @@ function getCurrentQuarter() {
         var splitEndDate = quarters[i].endDate.split('/');
 
         // Are the years the same?
-        if (splitStartDate[2] === currentYear) {
+        if (parseInt(splitStartDate[2]) === currentYear) {
             // is the month within range
-            if ((currentMonth >= splitStartDate[0]) && currentMonth <= splitEndDate[0]) {
+            if (currentMonth >= parseInt(splitStartDate[0]) && currentMonth <= parseInt(splitEndDate[0])) {
                 retQuarter = quarters[i];
                 break;
             }
@@ -240,18 +273,19 @@ function filterCollectionsByEmassNumber(collections) {
             }
 
             var emassNum = collections[x].metadata.eMASS;
-            if (emassNum) {
 
-                var myVal = emassMap.get(emassNum);
-                if (myVal) {
-                    myVal.push(collections[x]);
-                    emassMap.set(emassNum, myVal);
+            // Is emass a comma delimited string? if so, add each emass separately.
+            if (emassNum) {
+                if (emassNum.includes(',')) {
+
+                    var emassNums = emassNum.split(",");
+                    for (var iEmass = 0; iEmass < emassNums.length; iEmass++) {
+
+                        addEmassToMap(emassNums[iEmass], emassMap, collections[x]);
+                    }
                 }
                 else {
-                    myVal = collections[x];
-                    var collVal = [];
-                    collVal.push(myVal);
-                    emassMap.set(emassNum, collVal);
+                    addEmassToMap(emassNum, emassMap, collections[x]);
                 }
             }
         }
@@ -264,35 +298,39 @@ function filterCollectionsByEmassNumber(collections) {
     return emassMap;
 }
 
-async function getAllCollections(emassNums, emassMap) {
+function getFilteredCollections(auth, emassMap, emassNums) {
 
-    var storedAuth = getAuth();
     var collections = [];
-    var tempCollections = [];
 
-    tempCollections = await reportGetters.getCollections(storedAuth);
-    if (!emassNums || emassNums.length === 0) {
-        //collections = tempCollections;
-        for (var j = 0; j < tempCollections.data.length; j++) {
-            collections.push(tempCollections.data[j])
-        }
-    }
-    else {
-        emassMap = getCollectionsByEmassNumber(tempCollections);
-        var emassArray = emassNums.split(',');
-        for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
-            if (emassMap.has(emassArray[mapIdx])) {
+    var emassArray = emassNums.split(',');
+    for (var mapIdx = 0; mapIdx < emassArray.length; mapIdx++) {
 
-                var mappedCollection = emassMap.get(emassArray[mapIdx]);
-                if (mappedCollection) {
-                    collections = collections.concat(mappedCollection);
-                }
-            }
+        console.log('emassArray[mapIdx]: ' + emassArray[mapIdx]);
+        var mappedCollection = emassMap.get(emassArray[mapIdx]);
+        if (mappedCollection) {
+            collections = collections.concat(mappedCollection);
         }
     }
 
     return collections;
 }
+
+function addEmassToMap(emassNum, emassMap, collection) {
+
+    var myVal = emassMap.get(emassNum);
+    if (myVal) {
+        myVal.push(collection);
+        emassMap.set(emassNum, myVal);
+    }
+    else {
+        myVal = collection;
+        var collVal = [];
+        collVal.push(myVal);
+        emassMap.set(emassNum, collVal);
+    }
+
+}
+
 
 function getMetadata(labelMap, metrics) {
 
@@ -311,6 +349,55 @@ function getMetadata(labelMap, metrics) {
         console.log('asset: ' + metrics.name);
     }
     const labels = metrics.labels;
+    var labelDesc = '';
+
+    for (var iLabel = 0; iLabel < labels.length; iLabel++) {
+
+        labelDesc = labelMap.get(labels[iLabel].labelId).toUpperCase();
+
+        switch (labelDesc) {
+            case 'PRIMARY OWNER':
+                collectionMetadata.primOwner = labels[iLabel].name;
+                break;
+            case 'SYS ADMIN':
+                collectionMetadata.sysAdmin = labels[iLabel].name;
+                break;
+            case 'CCB_SA_ACTIONS':
+                collectionMetadata.ccbSAActions = labels[iLabel].name;
+                break;
+            case 'RMF Action':
+                collectionMetadata.rmfAction = labels[iLabel].name;
+                break;
+            case 'ISSO':
+                collectionMetadata.isso = labels[iLabel].name;
+                break;
+            case 'OTHER':
+                collectionMetadata.other = labels[iLabel].name;
+                break;
+            case 'ASSET TYPE':
+                collectionMetadata.device = labels[iLabel].name;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return collectionMetadata;
+}
+
+function getMetadataByAsset(labelMap, labels) {
+
+    var collectionMetadata =
+    {
+        primOwner: "",
+        sysAdmin: "",
+        device: "",
+        ccbSAActions: "",
+        rmfAction: "",
+        isso: "",
+        other: ""
+    }
+
     var labelDesc = '';
 
     for (var iLabel = 0; iLabel < labels.length; iLabel++) {
@@ -367,6 +454,93 @@ function mergeHeadersAndData(data) {
     return mergedData;
 }
 
+function generateAssetNames(emassNum, assetName, assetNames, assetEmass) {
+
+    var names = assetNames;
+
+    if (assetEmass) {
+        if (assetEmass === emassNum) {
+            names += assetName + ';';
+            /*if (idx < assets.data.length - 1) {
+                names += assets.data[idx].name + ';'
+            }
+            else {
+                names += assets.data[idx].name
+            }*/
+        }
+    }
+    /*else {
+        if (idx < assets.data.length - 1) {
+            names += assets.data[idx].name + ';'
+        }
+        else {
+            names += assets.data[idx].name
+        }
+    }*/
+
+    return names;
+}
+
+async function getAssetEmassMapByAssets(emassFilter, assets, checkDbWeb) {
+
+    var assetEmassMap = new Map();
+    if (assets) {
+        for (var i = 0; i < assets.data.length; i++) {
+
+            if (checkDbWeb === 1) {
+                if (assets.data[i] && assets.data[i].metadata && assets.data[i].metadata.cklWebOrDatabase) {
+                    if (assets.data[i].metadata.cklWebOrDatabase === 'true') {
+                        continue;
+                    }
+                }
+            }
+
+            if (assets.data[i].name === 'c25-infra-02') {
+                console.log('assetName: ' + assets.data[i].name);
+            }
+
+            var emassNum = '';
+            if (assets.data[i] && assets.data[i].metadata && assets.data[i].metadata.eMass) {
+
+                emassNum = assets.data[i].metadata.eMass;
+                if (emassFilter) {
+                    if (emassNum && emassNum === emassFilter) {
+                        assetEmassMap.set(assets.data[i].name, emassNum);
+                    }
+                }
+                else {
+                    assetEmassMap.set(assets.data[i].name, emassFilter);
+                }
+            }
+            else {
+                assetEmassMap.set(assets.data[i].name, emassFilter);
+            }
+        }
+    }
+
+    return assetEmassMap;
+}
+
+async function getAssetEmassMapForUnassigned(assets) {
+
+    var unassignedAssets = [];
+    if (assets) {
+        for (var i = 0; i < assets.data.length; i++) {
+
+            var emassNum = '';
+            if (assets.data[i] && !assets.data[i].metadata){
+                unassignedAssets.push(assets.data[i]);
+            }
+            if (assets.data[i] && assets.data[i].metadata && !assets.data[i].metadata.eMass) {
+                unassignedAssets.push(assets.data[i]);
+            }
+                
+        }
+    }
+
+    return unassignedAssets;
+}
+
 export {
     getCollectionsByEmassNumber,
     getCurrentQuarter,
@@ -376,7 +550,11 @@ export {
     calcDiffInDays,
     resultAbbreviation,
     filterCollectionsByEmassNumber,
-    getAllCollections,
     getMetadata,
-    mergeHeadersAndData
+    getMetadataByAsset,
+    mergeHeadersAndData,
+    generateAssetNames,
+    getFilteredCollections,
+    getAssetEmassMapByAssets,
+    getAssetEmassMapForUnassigned
 };

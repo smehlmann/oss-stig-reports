@@ -9,10 +9,39 @@ async function runSAReportWithMetricsAndVersions(auth, emassMap) {
 
         const currentQuarter = reportUtils.getCurrentQuarter();
 
+        var metrics = [];
         var labels = [];
         let labelMap = new Map();
+
         var rows = [];
-        
+        /*var rows = [
+            {
+
+                
+
+                collectionName: 'Collection',
+                asset: 'Asset',
+                deviveType: 'Device-Asset',
+                primOwner: 'Primary Owner',
+                sysAdmin: 'Sys Admin',
+                rmfAction: "RMF Action",
+                isso: "ISSO",
+                ccbSAActions: 'CCB_SA_Actions',
+                other: "OTHER",
+                benchmarks: 'STIG Benchmark',
+                latestRev: 'Latest Revision',
+                prevRev: 'Previous Revision',
+                quarterVer: 'Current Quarter STIG Version',
+                assessed: 'Assessed',
+                submitted: 'Submitted',
+                accepted: 'Accepted',
+                rejected: 'Rejected',
+                cat3: 'CAT3',
+                cat2: 'CAT2',
+                cat1: 'CAT1'
+            }
+        ];*/
+
         const headers = [
             { label: 'Collection', key: 'collectionName' },
             { label: 'Asset', key: 'asset' },
@@ -57,19 +86,20 @@ async function runSAReportWithMetricsAndVersions(auth, emassMap) {
                     labelMap.set(labels.data[x].labelId, labels.data[x].description);
                 }
 
-                // get assets 
-                var assets = await reportGetters.getAssetMetricsSummary(auth, collections[i].collectionId);
 
-                for (var iAssets = 0; iAssets < assets.data.length; iAssets++) {
-                    var assetMetrics = await
-                        reportGetters.getAssetMetricsSummaryByAssetId(auth, collections[i].collectionId, assets.data[iAssets].assetId);
+                metrics = await reportGetters.getCollectionMerticsAggreatedByAsset(auth, collections[i].collectionId);
+                console.log('num metrics: ' + metrics.data.length);
 
-                    for (var iMetrics = 0; iMetrics < assetMetrics.data.length; iMetrics++) {
+                for (var iMetrics = 0; iMetrics < metrics.data.length; iMetrics++) {
 
-                        var benchmarkId = assetMetrics.data[iMetrics].benchmarkId;
-                        console.log('benchmarkId: ' + benchmarkId);
+                    var benchmarkIDs = metrics.data[iMetrics].benchmarkIds;
+                    console.log('num benchmarks: ' + benchmarkIDs.length);
 
-                        var revisions = await reportGetters.getBenchmarkRevisions(auth, benchmarkId);
+                    for (var idx = 0; idx < benchmarkIDs.length; idx++) {
+
+                        console.log('benchmarkId: ' + benchmarkIDs[idx]);
+
+                        var revisions = await reportGetters.getBenchmarkRevisions(auth, benchmarkIDs[idx]);
 
                         var latestRev = '';
                         var prevRev = '';
@@ -86,7 +116,7 @@ async function runSAReportWithMetricsAndVersions(auth, emassMap) {
                             }
                         }
                         else {
-                            var stig = await reportGetters.getStigById(auth, benchmarkId);
+                            var stig = await reportGetters.getStigById(auth, benchmarkIDs[idx]);
 
                             latestRev = stig.data.lastRevisionStr;
                             latestRevDate = stig.data.lastRevisionDate;
@@ -94,17 +124,18 @@ async function runSAReportWithMetricsAndVersions(auth, emassMap) {
 
                         var myData = getRow(
                             collectionName,
-                            assetMetrics.data[iMetrics],
+                            metrics.data[iMetrics],
                             labelMap,
                             latestRev,
                             latestRevDate,
                             prevRev,
-                            benchmarkId,
+                            benchmarkIDs[idx],
                             currentQuarter);
 
                         rows.push(myData);
-                    }
-                }
+
+                    } // end for each benchmark
+                } // end for each iMetrics
             } // end for each collection
         } // end for each iEmass
 
@@ -118,7 +149,7 @@ async function runSAReportWithMetricsAndVersions(auth, emassMap) {
 }
 
 function getRow(collectionName,
-    assetMetrics,
+    metrics,
     labelMap,
     latestRev,
     latestRevDate,
@@ -128,15 +159,13 @@ function getRow(collectionName,
 
     const quarterVer = reportUtils.getVersionForQuarter(currentQuarter, latestRevDate, latestRev);
 
-    const metrics = assetMetrics.metrics;
-    const numAssessments = metrics.assessments;
-    const numAssessed = metrics.assessed;
-    const numSubmitted = metrics.statuses.submitted;
-    const numAccepted = metrics.statuses.accepted;
-    const numRejected = metrics.statuses.rejected;
+    const numAssessments = metrics.metrics.assessments;
+    const numAssessed = metrics.metrics.assessed;
+    const numSubmitted = metrics.metrics.statuses.submitted;
+    const numAccepted = metrics.metrics.statuses.accepted;
+    const numRejected = metrics.metrics.statuses.rejected;
 
-    const assetName = assetMetrics.name;
-    const collectionMetadata = reportUtils.getMetadataByAsset(labelMap, assetMetrics.labels);
+    const collectionMetadata = reportUtils.getMetadata(labelMap, metrics);
 
     var avgAssessed = 0;
     var avgSubmitted = 0;
@@ -159,13 +188,13 @@ function getRow(collectionName,
 
     }
 
-    const sumOfCat3 = metrics.findings.low;
-    const sumOfCat2 = metrics.findings.medium;
-    const sumOfCat1 = metrics.findings.high;
+    const sumOfCat3 = metrics.metrics.findings.low;
+    const sumOfCat2 = metrics.metrics.findings.medium;
+    const sumOfCat1 = metrics.metrics.findings.high;
 
     var rowData = {
         collectionName: collectionName,
-        asset: assetName,
+        asset: metrics.name,
         deviveType: collectionMetadata.device,
         primOwner: collectionMetadata.primOwner,
         sysAdmin: collectionMetadata.sysAdmin,

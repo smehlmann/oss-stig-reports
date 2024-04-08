@@ -1,7 +1,7 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runStigBenchmarkByResults(auth, args, collections, emassMap) {
+async function runStigBenchmarkByResults(auth, emassMap) {
 
     const currentQuarter = reportUtils.getCurrentQuarter();
 
@@ -37,141 +37,162 @@ async function runStigBenchmarkByResults(auth, args, collections, emassMap) {
 
     try {
         var startDate = new Date();
-        console.log('Number of collections: ' + collections.length);
-        // Get assets for each collection
-        for (var i = 0; i < collections.length; i++) {
-            var collectionName = collections[i].name;
-            var collectionId = collections[i].collectionId;
-            console.log('collection ' + i + ' ' + collectionName + ' ID: ' + collectionId);
+        const emassKeysArray = Array.from(emassMap.keys());
 
-            if (collectionName === 'Happy Corp') {
-                continue;
-            }
+        for (var iEmass = 0; iEmass < emassKeysArray.length; iEmass++) {
+            var collections = emassMap.get(emassKeysArray[iEmass]);
+            var emassNum = emassKeysArray[iEmass];
+            var assetEmassMap;
 
-            var tempMetrics = await reportGetters.getCollectionMerticsAggreatedByAsset(auth, collectionId);
-            //console.log('Number metrics: ' + metrics.length)
+            console.log('emassKeysArray[iEmass]: ' + emassKeysArray[iEmass]);
+            console.log('Number of collections: ' + collections.length);
+            // Get assets for each collection
+            for (var i = 0; i < collections.length; i++) {
+                var collectionName = collections[i].name;
+                var collectionId = collections[i].collectionId;
+                console.log('collection ' + i + ' ' + collectionName + ' ID: ' + collectionId);
 
-            var metrics = tempMetrics.data;
+                if (collectionName === 'Happy Corp') {
+                    continue;
+                }
 
+                /*var assetEmassMap = await reportGetters.getAssetEmassMap(auth, collections[i].collectionId, emassNum);
+                if(!assetEmassMap || assetEmassMap.size === 0){
+                    continue;
+                }*/
 
-            for (var iMetrics = 0; iMetrics < metrics.length; iMetrics++) {
-                var averages = reportUtils.getMetricsAverages(metrics[iMetrics]);
-                //console.log('Avg submited: ' + averages.submitted);
+                var tempMetrics = await reportGetters.getCollectionMerticsAggreatedByAsset(auth, collectionId);
+                //console.log('Number metrics: ' + metrics.length)
 
-                if (averages.submitted < 100) {
-                    var assetId = metrics[iMetrics].assetId;
-                    var assetName = metrics[iMetrics].name;
-
-                    var tempStigs = await reportGetters.getStigsByAsset(auth, assetId);
-                    var stigs = tempStigs.data;
-                    //console.log('Number of stigs: ' + stigs.length);
-
-                    for (var iStigs = 0; iStigs < stigs.length; iStigs++) {
-                        var benchmarkId = stigs[iStigs].benchmarkId;
-                        var revisionStr = stigs[iStigs].revisionStr;
-
-                        var tempChecklists = await reportGetters.getChecklists(
-                            auth, assetId, benchmarkId, revisionStr);
-                        var checklists = tempChecklists.data;
-                        //console.log('Number of checklists: ' + checklists.length);
-
-                        for (var iCkl = 0; iCkl < checklists.length; iCkl++) {
-
-                            var result = checklists[iCkl].result;
-                            result = result = resultAbbreviation(result);
-
-                            if (result === '' || result === 'O' ||
-                                result === 'NR+' || result === 'I') {
-                                //console.log('result: ' + checklists[iCkl].result + ' abbrv: ' + result);
-
-                                var groupId = checklists[iCkl].groupId;
-
-                                var tempReviews = await reportGetters.getReviewByGroupId(
-                                    auth, collectionId, assetId, benchmarkId, groupId);
-                                var reviews = tempReviews.data;
-                                //console.log('Number of reviews: ' + reviews.length);
-
-                                for (var iReviews = 0; iReviews < reviews.length; iReviews++) {
-
-                                    var myDetail = reviews[iReviews].detail;
-                                    var detail = myDetail.replaceAll('/', '-');
-                                    detail = detail.replaceAll('\r', '\\r');
-                                    detail = detail.replaceAll('\n', '\\n');
-                                    detail = detail.replaceAll('\t', '\\t');
-                                    detail = detail.replaceAll(',', ';');
-                                    /*if(detail === '0' || detail === '1' || detail === '2'){
-                                        console.log('myDetail before truncate: ' + myDetail);
-                                    }*/
-
-                                    if (detail.length > 32000) {
-                                        detail = detail.substring(0, 32000);
-                                    }
-
-                                    /*if(detail === '0' || detail === '1' || detail === '2'){
-                                        console.log('myDetail after truncate: ' + myDetail);
-                                    }*/
+                var metrics = tempMetrics.data;
 
 
-                                    var comment = reviews[iReviews].comment;
-                                    comment = comment.replaceAll('/', '|');
-                                    comment = comment.replaceAll('\r', '\\r');
-                                    comment = comment.replaceAll('\n', '\\n');
-                                    comment = comment.replaceAll('\t', '\\t');
-                                    comment = comment.replaceAll(',', ';');
-                                    //console.log('detail.length: ' + detail.length + ' comment.length: ' + comment.length);
+                for (var iMetrics = 0; iMetrics < metrics.length; iMetrics++) {
 
-                                    if (comment.length > 32000) {
-                                        comment = comment.substring(0, 32000);
-                                    }
+                    /*if(!assetEmassMap.get(assetName))
+                    {
+                        continue;
+                    }*/
 
-                                    /*if (collectionName === 'NP_C10  NCCM-W_7372_SAP-SAMPLE' &&
-                                        benchmarkId === 'IIS_10-0_Site_STIG' &&
-                                        groupId === 'V-218779' &&
-                                        assetName === 'NP0170NB422573-Default Web Site-NA') {
+                    var averages = reportUtils.getMetricsAverages(metrics[iMetrics]);
+                    //console.log('Avg submited: ' + averages.submitted);
 
-                                        console.log('detail: ' + detail);
-                                    }*/
+                    if (averages.submitted < 100) {
+                        var assetId = metrics[iMetrics].assetId;
+                        var assetName = metrics[iMetrics].name;
 
-                                    var status = reviews[iReviews].status.label;
+                        var tempStigs = await reportGetters.getStigsByAsset(auth, assetId);
+                        var stigs = tempStigs.data;
+                        //console.log('Number of stigs: ' + stigs.length);
 
-                                    var revisions = await reportGetters.getBenchmarkRevisions(auth, benchmarkId);
+                        for (var iStigs = 0; iStigs < stigs.length; iStigs++) {
+                            var benchmarkId = stigs[iStigs].benchmarkId;
+                            var revisionStr = stigs[iStigs].revisionStr;
 
-                                    var latestRev = '';
-                                    var prevRev = '';
-                                    var latestRevDate = '';
-                                    var prevRevDate = '';
+                            var tempChecklists = await reportGetters.getChecklists(
+                                auth, assetId, benchmarkId, revisionStr);
+                            var checklists = tempChecklists.data;
+                            //console.log('Number of checklists: ' + checklists.length);
 
-                                    for (var bmIdx = 0; bmIdx < revisions.length && bmIdx < 2; bmIdx++) {
-                                        if (bmIdx === 0) {
-                                            latestRev = revisions[bmIdx].revisionStr;
-                                            latestRevDate = revisions[bmIdx].benchmarkDate;
+                            for (var iCkl = 0; iCkl < checklists.length; iCkl++) {
+
+                                var result = checklists[iCkl].result;
+                                result = resultAbbreviation(result);
+
+                                if (result === '' || result === 'O' ||
+                                    result === 'NR+' || result === 'I') {
+                                    //console.log('result: ' + checklists[iCkl].result + ' abbrv: ' + result);
+
+                                    var groupId = checklists[iCkl].groupId;
+
+                                    var tempReviews = await reportGetters.getReviewByGroupId(
+                                        auth, collectionId, assetId, benchmarkId, groupId);
+                                    var reviews = tempReviews.data;
+                                    //console.log('Number of reviews: ' + reviews.length);
+
+                                    for (var iReviews = 0; iReviews < reviews.length; iReviews++) {
+
+                                        var myDetail = reviews[iReviews].detail;
+                                        var detail = myDetail.replaceAll('/', '-');
+                                        detail = detail.replaceAll('\r', '\\r');
+                                        detail = detail.replaceAll('\n', '\\n');
+                                        detail = detail.replaceAll('\t', '\\t');
+                                        detail = detail.replaceAll(',', ';');
+                                        /*if(detail === '0' || detail === '1' || detail === '2'){
+                                            console.log('myDetail before truncate: ' + myDetail);
+                                        }*/
+
+                                        if (detail.length > 32000) {
+                                            detail = detail.substring(0, 32000);
                                         }
-                                        else if (bmIdx === 1) {
-                                            prevRev = revisions[bmIdx].revisionStr;
-                                            prevRevDate = revisions[bmIdx].benchmarkDate;
-                                        }
-                                    }
 
-                                    var myData = getRow(collectionName,
-                                        benchmarkId,
-                                        currentQuarter,
-                                        latestRevDate,
-                                        latestRev,
-                                        prevRev,
-                                        groupId,
-                                        assetName,
-                                        result,
-                                        detail,
-                                        comment,
-                                        status);
-                                    rows.push(myData);
-                                } // end for iReviews
-                            } // end if result                              
-                        }// end for iCkl
-                    }//end for iStigs 
-                } // end if avgs
-            } // end for iMetrics
-        }//end for each collection\
+                                        /*if(detail === '0' || detail === '1' || detail === '2'){
+                                            console.log('myDetail after truncate: ' + myDetail);
+                                        }*/
+
+
+                                        var comment = reviews[iReviews].comment;
+                                        comment = comment.replaceAll('/', '|');
+                                        comment = comment.replaceAll('\r', '\\r');
+                                        comment = comment.replaceAll('\n', '\\n');
+                                        comment = comment.replaceAll('\t', '\\t');
+                                        comment = comment.replaceAll(',', ';');
+                                        //console.log('detail.length: ' + detail.length + ' comment.length: ' + comment.length);
+
+                                        if (comment.length > 32000) {
+                                            comment = comment.substring(0, 32000);
+                                        }
+
+                                        /*if (collectionName === 'NP_C10  NCCM-W_7372_SAP-SAMPLE' &&
+                                            benchmarkId === 'IIS_10-0_Site_STIG' &&
+                                            groupId === 'V-218779' &&
+                                            assetName === 'NP0170NB422573-Default Web Site-NA') {
+    
+                                            console.log('detail: ' + detail);
+                                        }*/
+
+                                        var status = reviews[iReviews].status.label;
+
+                                        var revisionsData = await reportGetters.getBenchmarkRevisions(auth, benchmarkId);
+                                        var revisions = revisionsData.data;
+
+                                        var latestRev = '';
+                                        var prevRev = '';
+                                        var latestRevDate = '';
+                                        var prevRevDate = '';
+
+                                        for (var bmIdx = 0; bmIdx < revisions.length && bmIdx < 2; bmIdx++) {
+                                            if (bmIdx === 0) {
+                                                latestRev = revisions[bmIdx].revisionStr;
+                                                latestRevDate = revisions[bmIdx].benchmarkDate;
+                                            }
+                                            else if (bmIdx === 1) {
+                                                prevRev = revisions[bmIdx].revisionStr;
+                                                prevRevDate = revisions[bmIdx].benchmarkDate;
+                                            }
+                                        }
+
+                                        var myData = getRow(collectionName,
+                                            benchmarkId,
+                                            currentQuarter,
+                                            latestRevDate,
+                                            latestRev,
+                                            prevRev,
+                                            groupId,
+                                            assetName,
+                                            result,
+                                            detail,
+                                            comment,
+                                            status);
+                                        rows.push(myData);
+                                    } // end for iReviews
+                                } // end if result                              
+                            }// end for iCkl
+                        }//end for iStigs 
+                    } // end if avgs
+                } // end for iMetrics
+            }//end for each collection
+        } //end for each eMass
 
         const returnData = { headers: headers, rows: rows }
         //return rows;
@@ -201,7 +222,7 @@ function getRow(collectionName, benchmarkId, currentQuarter,
         quarterVer: quarterVer,
         groupId: groupId,
         asset: assetName,
-        Result: result,
+        result: result,
         detail: detail,
         comment: comment,
         status: status

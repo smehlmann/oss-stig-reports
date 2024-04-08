@@ -1,7 +1,7 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap) {
+async function runSAReportByLabelAndEmass(auth, emassMap) {
 
     try {
 
@@ -25,34 +25,63 @@ async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap
             { label: 'CAT1', key: 'cat1' }
         ];
 
-        emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
+        /*emassMap = reportUtils.filterCollectionsByEmassNumber(collections);
         var iKey = 0;
         var iKeyend = emassMap.size;
         var myKeys = emassMap.keys();
         //console.log(myKeys);
 
-        while (iKey < iKeyend) {
-            var emassNum = myKeys.next().value;
+        while (iKey < iKeyend) {*/
+        const emassKeysArray = Array.from(emassMap.keys());
+
+        for (var iEmass = 0; iEmass < emassKeysArray.length; iEmass++) {
+            console.log('emassKeysArray[iEmass]: ' + emassKeysArray[iEmass]);
+            const collections = emassMap.get(emassKeysArray[iEmass]);
+            var emassNum = emassKeysArray[iEmass];
             var myCollections = emassMap.get(emassNum);
             var metricsData = [];
+            var assetEmassMap;
 
             for (var i = 0; i < myCollections.length; i++) {
 
-                var containsStr = myCollections[i].name.includes('Database/Web');
+                /*var containsStr = myCollections[i].name.includes('Database/Web');
 
-                if (!containsStr) {
-                    //metrics = await reportGetters.getCollectionMerticsAggreatedByLabel(
-                    metrics = await reportGetters.getCollectionMertics(auth, myCollections[i].collectionId);
-                    //console.log(metrics);
+                if (containsStr) {
+                    continue;
+                }*/
+
+                // get the collection assets
+                const assets = await reportGetters.getAssetsByCollection(auth, myCollections[i].collectionId);
+                if (!assets) {
+                    continue;
+                }
+
+                var tempEmassMap = await reportUtils.getAssetEmassMapByAssets(emassNum, assets, 1);
+                if (i === 0) {
+                    assetEmassMap = tempEmassMap
+                }
+                else {
+                    tempEmassMap.forEach((value, key) => assetEmassMap.set(key, value));
+                }
+
+                metrics = await reportGetters.getCollectionMerticsUnaggregated(auth, myCollections[i].collectionId);
+                if (metrics && metrics.data.length > 0) {
                     metricsData.push(metrics);
                 }
+
+                /*for (var iAsset = 0; iAsset < assets.data.length; iAsset++) {
+
+                    metrics = await reportGetters.getCollectionMerticsByCollectionAndAsset(auth, myCollections[i].collectionId,
+                        assets.data[iAsset].assetId);
+                    //console.log(metrics);n
+                    metricsData.push(metrics);
+                }*/
             }
 
             if (metricsData.length > 0) {
-                var myData = getRow(emassNum, metricsData, acronymMap);
+                var myData = getRow(emassNum, metricsData, acronymMap, assetEmassMap);
                 rows.push(myData);
             }
-            iKey++;
             metricsData.length = 0;
         }
 
@@ -66,33 +95,47 @@ async function runSAReportByLabelAndEmass(auth, emassNums, collections, emassMap
     }
 }
 
-function getRow(emassNum, metrics, acronymMap) {
+function getRow(emassNum, metrics, acronymMap, assetEmassMap) {
 
     var numAssessments = 0;
     var numAssessed = 0;
     var numSubmitted = 0;
     var numAccepted = 0;
     var numRejected = 0;
-    var numAssets = 0;
     var sumOfCat3 = 0;
     var sumOfCat2 = 0;
     var sumOfCat1 = 0;
+    const numAssets = assetEmassMap.size;
 
 
     for (var i = 0; i < metrics.length; i++) {
 
-        var myMetricsData = metrics[i].data;
-        numAssets += myMetricsData.assets;
+        for (var j = 0; j < metrics[i].data.length; j++) {
 
-        var myMetrics = myMetricsData.metrics;
-        numAssessments += myMetrics.assessments;
-        numAssessed += myMetrics.assessed;
-        numSubmitted += myMetrics.statuses.submitted.total;
-        numAccepted += myMetrics.statuses.accepted.total;
-        numRejected += myMetrics.statuses.rejected.total;
-        sumOfCat3 += myMetrics.findings.low;
-        sumOfCat2 += myMetrics.findings.medium;
-        sumOfCat1 += myMetrics.findings.high;
+            var myMetricsData = metrics[i].data[j];
+
+            // check the asset eMass
+            var assetName = myMetricsData.name;
+            var assetEmass = assetEmassMap.get(assetName);
+
+            if (assetName === 'c25-infra-02') {
+                console.log('assetName: ' + assetName);
+            }
+
+            if (assetEmass && assetEmass === emassNum) {
+                //numAssets += myMetricsData.assets;
+
+                var myMetrics = myMetricsData.metrics;
+                numAssessments += myMetrics.assessments;
+                numAssessed += myMetrics.assessed;
+                numSubmitted += myMetrics.statuses.submitted.total;
+                numAccepted += myMetrics.statuses.accepted.total;
+                numRejected += myMetrics.statuses.rejected.total;
+                sumOfCat3 += myMetrics.findings.low;
+                sumOfCat2 += myMetrics.findings.medium;
+                sumOfCat1 += myMetrics.findings.high;
+            }
+        }
     }
 
     var avgAssessed = 0;

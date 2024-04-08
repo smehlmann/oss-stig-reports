@@ -1,18 +1,18 @@
 import * as reportGetters from './reportGetters.js';
 import * as reportUtils from './reportUtils.js';
 
-async function runSAReportWithMetricsAndVersions(auth, emassMap) {
+async function runUnidentifiedPackages(auth, collections) {
 
     try {
 
-        console.log(`runSAReportWithMetricsAndVersions: Requesting STIG Manager Collections`);
+        console.log(`runUnidentifiedPackages: Requesting STIG Manager Collections`);
 
         const currentQuarter = reportUtils.getCurrentQuarter();
 
         var labels = [];
         let labelMap = new Map();
         var rows = [];
-        
+
         const headers = [
             { label: 'Collection', key: 'collectionName' },
             { label: 'Asset', key: 'asset' },
@@ -36,77 +36,86 @@ async function runSAReportWithMetricsAndVersions(auth, emassMap) {
             { label: 'CAT1', key: 'cat1' }
         ];
 
-        const emassKeysArray = Array.from(emassMap.keys());
-        for (var iEmass = 0; iEmass < emassKeysArray.length; iEmass++) {
-            console.log('emassKeysArray[iEmass]: ' + emassKeysArray[iEmass]);
-            var collections = emassMap.get(emassKeysArray[iEmass]);
+        for (var i = 0; i < collections.data.length; i++) {
+            var collectionName = collections.data[i].name;
+            console.log('collection name: ' + collectionName);
 
-            for (var i = 0; i < collections.length; i++) {
-                var collectionName = collections[i].name;
-                console.log('collection name: ' + collectionName);
+            if (!collectionName.startsWith('NP_C')) {
+                continue;
+            }
 
-                if (!collectionName.startsWith('NP_C')) {
+            if(collections.data[i].metadata && collections.data[i].metadata.eMASS){
+                var eMass = collections.data[i].metadata.eMASS;
+                eMass = eMass.replaceAll(' ', '');
+                if(eMass !== '7371,7372,7373'){
                     continue;
                 }
+            }
 
-                labelMap.clear();
-                labels.length = 0;
+            var assets = await reportGetters.getAssetsByCollection(auth, collections.data[i].collectionId);
+            if (!assets || assets.data.length === 0) {
+                continue;
+            }
 
-                labels = await reportGetters.getLabelsByCollection(auth, collections[i].collectionId);
-                for (var x = 0; x < labels.data.length; x++) {
-                    labelMap.set(labels.data[x].labelId, labels.data[x].description);
-                }
+            var unassignedAssets = await reportUtils.getAssetEmassMapForUnassigned(assets);
+            if(!unassignedAssets || unassignedAssets.length === 0){
+                continue;
+            }
+            
+            labelMap.clear();
+            labels.length = 0;
 
-                // get assets 
-                var assets = await reportGetters.getAssetMetricsSummary(auth, collections[i].collectionId);
+            labels = await reportGetters.getLabelsByCollection(auth, collections.data[i].collectionId);
+            for (var x = 0; x < labels.data.length; x++) {
+                labelMap.set(labels.data[x].labelId, labels.data[x].description);
+            }
 
-                for (var iAssets = 0; iAssets < assets.data.length; iAssets++) {
-                    var assetMetrics = await
-                        reportGetters.getAssetMetricsSummaryByAssetId(auth, collections[i].collectionId, assets.data[iAssets].assetId);
+            for (var iAssets = 0; iAssets < unassignedAssets.length; iAssets++) {
+                var assetMetrics = await
+                    reportGetters.getAssetMetricsSummaryByAssetId(auth, collections.data[i].collectionId, unassignedAssets[iAssets].assetId);
 
-                    for (var iMetrics = 0; iMetrics < assetMetrics.data.length; iMetrics++) {
+                for (var iMetrics = 0; iMetrics < assetMetrics.data.length; iMetrics++) {
 
-                        var benchmarkId = assetMetrics.data[iMetrics].benchmarkId;
-                        console.log('benchmarkId: ' + benchmarkId);
+                    var benchmarkId = assetMetrics.data[iMetrics].benchmarkId;
+                    console.log('benchmarkId: ' + benchmarkId);
 
-                        var revisions = await reportGetters.getBenchmarkRevisions(auth, benchmarkId);
+                    var revisions = await reportGetters.getBenchmarkRevisions(auth, benchmarkId);
 
-                        var latestRev = '';
-                        var prevRev = '';
-                        var latestRevDate = '';
-                        if (revisions) {
-                            for (var bmIdx = 0; bmIdx < revisions.data.length && bmIdx < 2; bmIdx++) {
-                                if (bmIdx === 0) {
-                                    latestRev = revisions.data[bmIdx].revisionStr;
-                                    latestRevDate = revisions.data[bmIdx].benchmarkDate;
-                                }
-                                else if (bmIdx === 1) {
-                                    prevRev = revisions.data[bmIdx].revisionStr;
-                                }
+                    var latestRev = '';
+                    var prevRev = '';
+                    var latestRevDate = '';
+                    if (revisions) {
+                        for (var bmIdx = 0; bmIdx < revisions.data.length && bmIdx < 2; bmIdx++) {
+                            if (bmIdx === 0) {
+                                latestRev = revisions.data[bmIdx].revisionStr;
+                                latestRevDate = revisions.data[bmIdx].benchmarkDate;
+                            }
+                            else if (bmIdx === 1) {
+                                prevRev = revisions.data[bmIdx].revisionStr;
                             }
                         }
-                        else {
-                            var stig = await reportGetters.getStigById(auth, benchmarkId);
-
-                            latestRev = stig.data.lastRevisionStr;
-                            latestRevDate = stig.data.lastRevisionDate;
-                        }
-
-                        var myData = getRow(
-                            collectionName,
-                            assetMetrics.data[iMetrics],
-                            labelMap,
-                            latestRev,
-                            latestRevDate,
-                            prevRev,
-                            benchmarkId,
-                            currentQuarter);
-
-                        rows.push(myData);
                     }
+                    else {
+                        var stig = await reportGetters.getStigById(auth, benchmarkId);
+
+                        latestRev = stig.data.lastRevisionStr;
+                        latestRevDate = stig.data.lastRevisionDate;
+                    }
+
+                    var myData = getRow(
+                        collectionName,
+                        assetMetrics.data[iMetrics],
+                        labelMap,
+                        latestRev,
+                        latestRevDate,
+                        prevRev,
+                        benchmarkId,
+                        currentQuarter);
+
+                    rows.push(myData);
                 }
-            } // end for each collection
-        } // end for each iEmass
+            }
+        } // end for each collection
 
         const returnData = { headers: headers, rows: rows }
         //return rows;
@@ -190,4 +199,4 @@ function getRow(collectionName,
 
 }
 
-export { runSAReportWithMetricsAndVersions };
+export { runUnidentifiedPackages };
